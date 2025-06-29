@@ -1,53 +1,101 @@
 const express = require('express');
 const router = express.Router();
+
 const supabase = require('../supabaseClient');
 
-// إنشاء مستخدم جديد في supabase auth ثم إضافة وكالة جديدة
-// body: { email, password, name, wilaya, license_number, phone, bank_account, logo_url, background_url, location_name, latitude, longitude }
-router.post('/add', async (req, res) => {
-  const { email, password, name, wilaya, license_number, phone, bank_account, logo_url, background_url, location_name, latitude, longitude } = req.body;
-  if (!email || !password || !name || !wilaya || !license_number || !phone || !location_name || !latitude || !longitude) {
-    return res.status(400).json({ error: 'يرجى إدخال جميع البيانات المطلوبة.' });
+// ميدلوير حماية التوكن لجميع العمليات
+async function verifyToken(req, res, next) {
+  const authHeader = req.headers['authorization'];
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'يرجى إرسال التوكن في الهيدر (Authorization: Bearer <token>)' });
   }
-  // إنشاء مستخدم جديد في supabase auth
-  const { data: userData, error: signUpError } = await supabase.auth.admin.createUser({
-    email,
-    password,
-    email_confirm: true
-  });
-  if (signUpError) {
-    return res.status(500).json({ error: signUpError.message });
+  const token = authHeader.split(' ')[1];
+  const { data, error } = await supabase.auth.getUser(token);
+  if (error || !data || !data.user) {
+    return res.status(401).json({ error: 'توكن غير صالح أو منتهي الصلاحية.' });
   }
-  const user = userData.user;
-  // إضافة الوكالة في جدول agencies
-  const { data, error } = await supabase.from('agencies').insert([
-    {
-      id: user.id,
-      name,
-      wilaya,
-      license_number,
-      phone,
-      bank_account,
-      logo_url,
-      background_url,
-      location_name,
-      latitude,
-      longitude
-    }
-  ]).select();
-  if (error) {
-    return res.status(500).json({ error: error.message });
-  }
-  res.json({ message: 'تم إنشاء الوكالة والمستخدم بنجاح', data });
+  req.user = data.user;
+  next();
+}
+
+router.use(verifyToken);
+
+// إجمالي الوكالات
+router.get('/total-agencies', async (req, res) => {
+  const { count, error } = await supabase.from('agencies').select('*', { count: 'exact', head: true });
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ total: count || 0 });
 });
 
-// استرجاع جميع الوكالات
-router.get('/all', async (req, res) => {
-  const { data, error } = await supabase.from('agencies').select('*');
-  if (error) {
-    return res.status(500).json({ error: error.message });
+// إجمالي المعتمرين (عدد الحجوزات المقبولة)
+router.get('/total-pilgrims', async (req, res) => {
+  const { count, error } = await supabase.from('bookings').select('*', { count: 'exact', head: true }).eq('status', 'مقبول');
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ total: count || 0 });
+});
+
+// إجمالي العروض
+router.get('/total-offers', async (req, res) => {
+  const { count, error } = await supabase.from('offers').select('*', { count: 'exact', head: true });
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ total: count || 0 });
+});
+
+// عدد الطلبات المعلقة
+router.get('/pending-requests', async (req, res) => {
+  const { count, error } = await supabase.from('bookings').select('*', { count: 'exact', head: true }).eq('status', 'قيد الانتظار');
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ total: count || 0 });
+});
+
+// قائمة الوكالات المعلقة
+router.get('/pending-agencies', async (req, res) => {
+  const { data, error } = await supabase.from('agencies').select('id, name, wilaya, phone, email').eq('is_approved', false);
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ agencies: data || [] });
+});
+
+// إحصائيات الحجوزات الشهرية (آخر 12 شهر)
+router.get('/monthly-bookings', async (req, res) => {
+  const { data, error } = await supabase.from('bookings').select('created_at').order('created_at', { ascending: true });
+  if (error) return res.status(500).json({ error: error.message });
+  const months = [];
+  const monthlyCounts = [];
+  if (data && data.length) {
+    const now = new Date();
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const ym = d.toISOString().slice(0, 7);
+      months.push(ym);
+      const count = data.filter(b => b.created_at && b.created_at.startsWith(ym)).length;
+      monthlyCounts.push(count);
+    }
   }
-  res.json({ agencies: data });
+  res.json({ months, counts: monthlyCounts });
+});
+
+// توزيع الوكالات حسب الولاية (top 6)
+router.get('/agencies-by-wilaya', async (req, res) => {
+  const { data, error } = await supabase.from('agencies').select('wilaya').neq('wilaya', null);
+  if (error) return res.status(500).json({ error: error.message });
+  const wilayaCount = {};
+  if (data) {
+    data.forEach(a => {
+      if (!a.wilaya) return;
+      wilayaCount[a.wilaya] = (wilayaCount[a.wilaya] || 0) + 1;
+    });
+  }
+  const labels = Object.keys(wilayaCount).sort((a, b) => wilayaCount[b] - wilayaCount[a]).slice(0, 6);
+  const counts = labels.map(w => wilayaCount[w]);
+  res.json({ labels, counts });
+});
+
+// تفاصيل وكالة واحدة
+router.get('/agency/:id', async (req, res) => {
+  const { id } = req.params;
+  const { data, error } = await supabase.from('agencies').select('*').eq('id', id).single();
+  if (error || !data) return res.status(404).json({ error: 'الوكالة غير موجودة.' });
+  res.json({ agency: data });
 });
 
 module.exports = router;
