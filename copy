@@ -1,13 +1,12 @@
-
 const express = require('express');
 const router = express.Router();
 const supabase = require('../supabaseClient');
 
-// إنشاء مستخدم جديد في supabase auth ثم إضافته كمدير عام
-// body: { email, password, full_name }
-router.post('/add-admin', async (req, res) => {
-  const { email, password, full_name } = req.body;
-  if (!email || !password || !full_name) {
+// إنشاء مستخدم جديد في supabase auth ثم إضافة وكالة جديدة
+// body: { email, password, name, wilaya, license_number, phone, bank_account, logo_url, background_url, location_name, latitude, longitude }
+router.post('/add', async (req, res) => {
+  const { email, password, name, wilaya, license_number, phone, bank_account, logo_url, background_url, location_name, latitude, longitude } = req.body;
+  if (!email || !password || !name || !wilaya || !license_number || !phone || !location_name || !latitude || !longitude) {
     return res.status(400).json({ error: 'يرجى إدخال جميع البيانات المطلوبة.' });
   }
   // إنشاء مستخدم جديد في supabase auth
@@ -20,38 +19,35 @@ router.post('/add-admin', async (req, res) => {
     return res.status(500).json({ error: signUpError.message });
   }
   const user = userData.user;
-  // إضافة المدير العام في جدول admins بدور 'main'
-  const { data, error } = await supabase.from('admins').insert([
+  // إضافة الوكالة في جدول agencies
+  const { data, error } = await supabase.from('agencies').insert([
     {
       id: user.id,
-      full_name,
-      email,
-      role: 'main',
-      created_by: null,
-      permissions: null
+      name,
+      wilaya,
+      license_number,
+      phone,
+      bank_account,
+      logo_url,
+      background_url,
+      location_name,
+      latitude,
+      longitude
     }
   ]).select();
   if (error) {
     return res.status(500).json({ error: error.message });
   }
-  res.json({ message: 'تم إنشاء المدير العام بنجاح', data });
+  res.json({ message: 'تم إنشاء الوكالة والمستخدم بنجاح', data });
 });
 
-
-router.post('/login-admin', async (req, res) => {
-  const { email, password } = req.body;
-  if (!email || !password) {
-    return res.status(400).json({ error: 'يرجى إدخال البريد الإلكتروني وكلمة المرور.' });
-  }
-  // تسجيل الدخول للمستخدم
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password
-  });
+// استرجاع جميع الوكالات
+router.get('/all', async (req, res) => {
+  const { data, error } = await supabase.from('agencies').select('*');
   if (error) {
-    return res.status(401).json({ error: 'فشل تسجيل الدخول. يرجى التحقق من البريد الإلكتروني وكلمة المرور.' });
+    return res.status(500).json({ error: error.message });
   }
-  res.json({ message: 'تم تسجيل الدخول بنجاح', user: data.user });
+  res.json({ agencies: data });
 });
 
 module.exports = router;
