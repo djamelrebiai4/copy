@@ -9,8 +9,8 @@
 | POST    | `/api/admin/add-admin`         | إنشاء مدير عام جديد | `{ "email": "admin@email.com", "password": "yourPassword", "full_name": "اسم المدير" }` |
 | POST    | `/api/admin/login-admin`       | تسجيل دخول مدير | `{ "email": "admin@email.com", "password": "yourPassword" }` |
 | GET     | `/api/admin/all`               | جلب جميع المدراء |  |
-| POST    | `/api/admin/add-sub-admin`     | إضافة مدير فرعي جديد | `{ "email": "subadmin@email.com", "password": "yourPassword", "full_name": "مدير فرعي", "role": "sub", "permissions": { "can_approve_agencies": true }, "created_by": "معرف_المدير_العام" }` |
-| PUT     | `/api/admin/update/:id`        | تعديل بيانات مدير فرعي أو مميز | `{ "full_name": "اسم جديد", "permissions": { "can_approve_agencies": false } }` |
+| POST    | `/api/admin/add-sub-admin`     | إضافة مدير فرعي جديد | `{ "email": "subadmin@email.com", "password": "yourPassword", "full_name": "مدير فرعي", "role": "sub", "permissions": { "can_approve_agencies": true, "manage_agencies": true, "manage_offers": true }, "created_by": "معرف_المدير_العام" }` |
+| PUT     | `/api/admin/update/:id`        | تعديل بيانات مدير فرعي أو مميز | `{ "full_name": "اسم جديد", "permissions": { "can_approve_agencies": false, "manage_agencies": true, "manage_offers": false } }` |
 | DELETE  | `/api/admin/delete/:id`        | حذف مدير فرعي أو مميز |  |
 
 ---
@@ -21,13 +21,29 @@
 |---------|--------|-------|---------------|
 | POST    | `/api/agencies/add`            | إضافة وكالة جديدة | `{ "email": "agency@email.com", "password": "yourPassword", "name": "اسم الوكالة", "wilaya": "الولاية", "license_number": "12345", "phone": "0555555555", "bank_account": "رقم الحساب", "logo_url": "رابط الشعار", "background_url": "رابط الخلفية", "location_name": "العنوان النصي", "latitude": 36.123, "longitude": 3.456 }` |
 | GET     | `/api/agencies/all`            | جلب جميع الوكالات |  |
-| PUT     | `/api/agencies/status/:id`     | قبول أو تعليق وكالة (من طرف المدير العام فقط) | `{ "is_approved": true }` أو `{ "is_approved": false }` |
+| GET     | `/api/agencies/pending`        | جلب الوكالات المعلقة فقط (يتطلب صلاحية can_approve_agencies) |  |
+| PUT     | `/api/agencies/status/:id`     | قبول أو تعليق وكالة (يتطلب صلاحية can_approve_agencies) | `{ "is_approved": true }` أو `{ "is_approved": false }` |
 
 ---
 
-## ملاحظات
-- جميع المسارات الإدارية (عدا تسجيل الدخول) تتطلب إرسال التوكن في الهيدر:
+## 💼 العروض (Offers)
+
+| الطريقة | المسار | الوصف | مثال الـ Body |
+|---------|--------|-------|---------------|
+| GET     | `/api/offers/all`              | جلب جميع العروض |  |
+| PUT     | `/api/offers/update/:id`       | تعديل عرض (يتطلب صلاحية manage_offers) | `{ "title": "عنوان جديد", "price": 10000, ... }` |
+| DELETE  | `/api/offers/delete/:id`       | حذف عرض (يتطلب صلاحية manage_offers) |  |
+
+---
+
+## 🛡️ الحماية والصلاحيات
+
+- جميع العمليات (عدا تسجيل الدخول) تتطلب إرسال التوكن في الهيدر:
   - `Authorization: Bearer <access_token>`
-- بعض المسارات تتطلب أن يكون المستخدم مدير عام (role: main).
-- يمكنك إضافة المزيد من المسارات حسب الحاجة (عروض، حجوزات، دردشة...)
+- كل عملية مقيدة حسب الدور أو الصلاحية:
+  - المدير العام (role: main) له جميع الصلاحيات.
+  - المدير الفرعي (role: sub) يجب أن يمتلك الصلاحية المناسبة (manage_agencies, can_approve_agencies, manage_offers).
+- تم توحيد ميدلوير حماية التوكن JWT في جميع الملفات.
+
+---
 
