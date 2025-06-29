@@ -14,3 +14,15 @@ http://localhost:3001/api/admin/add-sub-admin
   "created_by": "699325f2-c185-4e11-befd-1c97ccd07d23"
 }
 _________________________________________________
+الحذف الرقم الاخير عبارة عن id
+http://localhost:3001/api/admin/delete/14309c47-8f85-494c-baa8-ac1da1e5e2e5
+
+_______________________________________________________________
+التعديل المدراء 
+http://localhost:3001/api/admin/update/67ffdc97-98f9-44a4-8fa1-806ae62f8c8d
+مثال تغير الاسم و بارميسيو
+{
+  "full_name": "اسم جديد",
+  "permissions": { "can_approve_agencies": false }
+}
+__________________________________________________________
