@@ -30,8 +30,9 @@
 
 | الطريقة | المسار | الوصف | مثال الـ Body |
 |---------|--------|-------|---------------|
+| POST    | `/api/offers/add`              | إضافة عرض جديد (يتطلب صلاحية manage_offers) | `{ "agency_id": "<معرف الوكالة>", "title": "عرض عمرة رمضان", "main_image": "https://example.com/image.jpg", "services": { "visa": true, "transport": true, "meals": true }, "airline_id": 1, "flight_type": "مباشرة", "departure_date": "2025-03-15", "return_date": "2025-03-30", "duration_days": 15, "hotel_name": "فندق مكة", "hotel_distance": 500, "hotel_images": ["https://example.com/hotel1.jpg", "https://example.com/hotel2.jpg"], "description": "برنامج عمرة شامل الإقامة والنقل", "entry_exit": "جدة", "price_double": 15000, "price_triple": 14000, "price_quad": 13000, "price_quint": 12000 }` |
 | GET     | `/api/offers/all`              | جلب جميع العروض |  |
-| PUT     | `/api/offers/update/:id`       | تعديل عرض (يتطلب صلاحية manage_offers) | `{ "title": "عنوان جديد", "price": 10000, ... }` |
+| PUT     | `/api/offers/update/:id`       | تعديل عرض (يتطلب صلاحية manage_offers) | `{ "title": "عنوان جديد", "price_double": 10000 }` |
 | DELETE  | `/api/offers/delete/:id`       | حذف عرض (يتطلب صلاحية manage_offers) |  |
 
 ---
@@ -46,4 +47,5 @@
 - تم توحيد ميدلوير حماية التوكن JWT في جميع الملفات.
 
 ---
+
 
