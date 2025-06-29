@@ -15,14 +15,28 @@ http://localhost:3001/api/admin/add-sub-admin
 }
 _________________________________________________
 الحذف الرقم الاخير عبارة عن id
-http://localhost:3001/api/admin/delete/14309c47-8f85-494c-baa8-ac1da1e5e2e5
+http://localhost:3001/api/admin/delete/<id>
 
+مثال
+
+http://localhost:3001/api/admin/delete/14309c47-8f85-494c-baa8-ac1da1e5e2e5
 _______________________________________________________________
 التعديل المدراء 
-http://localhost:3001/api/admin/update/67ffdc97-98f9-44a4-8fa1-806ae62f8c8d
+http://localhost:3001/api/admin/update/<id>
 مثال تغير الاسم و بارميسيو
 {
   "full_name": "اسم جديد",
   "permissions": { "can_approve_agencies": false }
 }
 __________________________________________________________
+قبول او تعليق الوكالات
+http://localhost:3001/api/admin/agency-status/<id>
+{
+  "is_approved": true   // للقبول
+}
+
+او
+
+{
+  "is_approved": false  // للرفض
+}
