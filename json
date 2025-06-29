@@ -1,14 +1,16 @@
+get لجميع المدراء
+http://localhost:3001/api/admin/all
+____________________________________
+
+post انشاء مدير ثانوي
+http://localhost:3001/api/admin/add-sub-admin
+
 {
-  "email": "agency@email.com",
-  "password": "StrongPassword123",
-  "name": "وكالة الإيمان",
-  "wilaya": "الجزائر",
-  "license_number": "123456",
-  "phone": "0555123456",
-  "bank_account": "1234567890",
-  "logo_url": "https://example.com/logo.png",
-  "background_url": "https://example.com/bg.png",
-  "location_name": "حي 5 جويلية، البويرة",
-  "latitude": 36.3765,
-  "longitude": 3.9021
+  "email": "subadmin1@email.com",
+  "password": "yourStrongPassword",
+  "full_name": "مدير فرعي 1",
+  "role": "sub",
+  "permissions": { "can_approve_agencies": true },
+  "created_by": "699325f2-c185-4e11-befd-1c97ccd07d23"
 }
+_________________________________________________
