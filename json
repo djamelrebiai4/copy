@@ -12,6 +12,7 @@
 | GET     | `/api/stats/monthly-bookings`       | إحصائيات الحجوزات الشهرية (آخر 12 شهر) (يتطلب توكن) |
 | GET     | `/api/stats/agencies-by-wilaya`     | توزيع الوكالات حسب الولاية (Top 6) (يتطلب توكن) |
 | GET     | `/api/stats/agency/:id`             | تفاصيل وكالة واحدة حسب المعرف (يتطلب توكن) |
+| GET     | `/api/stats/top-agency-by-offers-per-year` | أكثر وكالة أضافت عروضًا في كل سنة خلال آخر 10 سنوات (اسم الوكالة وعدد العروض لكل سنة) |
 | GET     | `/api/stats/admin-activity`         | سجل نشاطات المدراء (يتطلب توكن، فقط المدير العام) |
 ---
 
