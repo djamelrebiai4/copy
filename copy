@@ -1,391 +1,260 @@
-:root {
-  --primary: #176a3d;
-  --primary-dark: #0f3f26;
-  --primary-light: #eaf7ec;
-  --secondary: #f3f6f9;
-  --gold: #d9a441;
-  --gold-light: #fff5d0;
-  --success: #2ca87f;
-  --success-light: #e6f7f2;
-  --danger: #c0392b;
-  --warning: #f7ca18;
-  --sidebar-bg: linear-gradient(120deg, #176a3d 80%, #bfa669 100%);
-  --sidebar-text: #e7f6f9;
-  --sidebar-active: #d9a441;
-  --text-secondary: #7d8c7c;
-  --border-radius: 16px;
-  --shadow: 0 2px 16px #bfa66922;
-  --white: #fff;
-  --main-bg: linear-gradient(135deg, #f6f9f6 0%, #e6f3e6 100%);
-}
+const express = require('express');
+const router = express.Router();
+const supabase = require('../supabaseClient');
 
-body {
-  font-family: "Cairo", "Inter", Arial, sans-serif;
-  background: var(--main-bg);
-  color: #253a2e;
-  margin: 0;
-  direction: rtl;
-  min-height: 100vh;
-  overflow-x: hidden;
-}
-.dashboard-container {
-  display: flex;
-  min-height: 100vh;
-  flex-direction: row;
-  background: var(--main-bg);
-}
-
-
-/* ======= MAIN CONTENT ======= */
-.main-content {
-  flex: 1 1 auto;
-  padding: 32px 24px 32px 24px;
-  min-width: 0;
-  background: none;
-  display: flex;
-  flex-direction: column;
-  gap: 32px;
-}
-
-/* الهيدر */
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  background: #fff;
-  margin: 0 0 24px 0;
-  padding: 30px 35px 20px 35px;
-  box-shadow: var(--shadow);
-  border-radius: 0 0 var(--border-radius) var(--border-radius);
-  border-bottom: 4px solid var(--primary-light);
-  border-top: 2px solid var(--gold-light);
-}
-
-.header-left h1 {
-  font-size: 2.2rem;
-  margin: 0 0 7px 0;
-  color: var(--primary);
-  font-weight: 900;
-  letter-spacing: 0.7px;
-  text-shadow: 0 2px 6px #bfa66922;
-}
-
-.header-left p {
-  margin: 0;
-  color: var(--text-secondary);
-  font-size: 1.12rem;
-  font-weight: 500;
-}
-
-.header-right {
-  display: flex;
-  align-items: center;
-  gap: 26px;
-}
-
-.language-switcher {
-  background: var(--secondary);
-  border-radius: 8px;
-  display: flex;
-  gap: 0;
-  overflow: hidden;
-  border: 1px solid #e3e5e9;
-  box-shadow: 0 1px 6px #bfa66911;
-}
-
-.lang-btn {
-  border: none;
-  background: transparent;
-  padding: 7px 16px;
-  font-size: 1.01em;
-  color: #253a2e;
-  cursor: pointer;
-  transition: background 0.17s, color 0.17s;
-}
-
-.lang-btn.active,
-.lang-btn:hover {
-  background: var(--primary);
-  color: #fff;
-}
-
-.user-info {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: var(--primary-light);
-  border-radius: 8px;
-  padding: 6px 13px;
-  box-shadow: 0 2px 6px #bfa66922;
-  font-size: 1.01em;
-}
-
-.user-avatar {
-  width: 33px;
-  height: 33px;
-  background: linear-gradient(135deg, #d9a441 40%, #fff5d0 90%);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.22em;
-  color: #fff;
-  margin-left: 7px;
-  box-shadow: 0 1px 5px #bfa66933;
-}
-
-/* ======= إحصائيات ======= */
-.stats-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 22px;
-  margin: 0 0 2.2rem 0;
-  justify-content: flex-start;
-}
-.stat-card {
-  background: var(--white);
-  border-radius: var(--border-radius);
-  box-shadow: 0 2px 12px #bfa66915;
-  padding: 15px 25px 15px 20px;
-  min-width: 180px;
-  flex: 1 1 170px;
-  max-width: 220px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform 0.13s, box-shadow 0.13s;
-  border: 1px solid #e8e8ee;
-}
-
-.stat-card:hover {
-  transform: translateY(-5px) scale(1.03);
-  box-shadow: 0 8px 28px #176a3d18;
-  border-color: var(--primary-light);
-}
-
-.stat-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-  justify-content: space-between;
-}
-
-.stat-number {
-  font-size: 2.1em;
-  font-weight: 800;
-  color: var(--primary-dark);
-  margin-bottom: 2px;
-  letter-spacing: 1.1px;
-}
-
-.stat-label {
-  color: var(--text-secondary);
-  font-size: 1.09em;
-  font-weight: 600;
-  margin-top: 3px;
-}
-
-.stat-icon {
-  font-size: 2.1em;
-  color: var(--gold);
-  text-shadow: 0 1px 8px #ffd70022;
-}
-
-/* ======= المخططات ======= */
-.charts-section {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 24px;
-  margin: 0 0 2rem 0;
-  justify-content: flex-start;
-}
-
-.chart-card {
-  background: var(--white);
-  border-radius: var(--border-radius);
-  box-shadow: var(--shadow);
-  padding: 12px 23px;
-  flex: 1 1 350px;
-  min-width: 310px;
-  max-width: 470px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  border: 1px solid #e8e8ee;
-}
-
-.chart-title {
-  font-weight: 800;
-  color: var(--primary-dark);
-  font-size: 1.1em;
-  margin-bottom: 13px;
-  letter-spacing: 0.1em;
-}
-
-.charts-section .chartjs-render-monitor {
-  background: transparent;
-  border-radius: 12px;
-}
-
-/* ======= الوكالات المعلقة ======= */
-.pending-agencies {
-  margin: 0 0 2rem 0;
-  padding: 0 0;
-}
-
-.pending-agencies h2 {
-  color: var(--primary-dark);
-  font-size: 1.25em;
-  font-weight: bold;
-  margin-bottom: 1.1rem;
-  letter-spacing: 0.04em;
-}
-
-#pendingAgenciesTable {
-  width: 100%;
-  background: var(--white);
-  border-radius: var(--border-radius);
-  box-shadow: 0 2px 16px #bfa66911;
-  overflow: hidden;
-  border-collapse: separate;
-  border-spacing: 0;
-  border: 1.5px solid #e8e8ee;
-  font-size: 1em;
-}
-
-#pendingAgenciesTable th,
-#pendingAgenciesTable td {
-  padding: 13px 12px;
-  text-align: center;
-  border-bottom: 1px solid #eee;
-}
-
-#pendingAgenciesTable th {
-  background: var(--primary-light);
-  color: var(--primary-dark);
-  font-weight: 800;
-  font-size: 1.05em;
-  border: none;
-}
-
-#pendingAgenciesTable tr:last-child td {
-  border-bottom: none;
-}
-#pendingAgenciesTable td {
-  color: var(--primary-dark);
-}
-
-.accept-btn {
-  background: var(--success);
-  color: #fff;
-  border: none;
-  border-radius: 7px;
-  padding: 7px 19px;
-  font-size: 1em;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background 0.13s;
-  box-shadow: 0 2px 8px #176a3d18;
-}
-.accept-btn:hover:not([disabled]) {
-  background: #198754;
-}
-.accept-btn[disabled] {
-  opacity: 0.7;
-  cursor: not-allowed;
-}
-
-/* ======= Responsive Styles ======= */
-@media (max-width: 1200px) {
-  .charts-section {
-    flex-direction: column;
-    align-items: stretch;
+// ميدلوير للتحقق من التوكن
+async function verifyToken(req, res, next) {
+  const authHeader = req.headers['authorization'];
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'يرجى إرسال التوكن في الهيدر (Authorization: Bearer <token>)' });
   }
-  .chart-card {
-    max-width: 90vw;
-    margin-bottom: 18px;
+  const token = authHeader.split(' ')[1];
+  const { data, error } = await supabase.auth.getUser(token);
+  if (error || !data || !data.user) {
+    return res.status(401).json({ error: 'توكن غير صالح أو منتهي الصلاحية.' });
   }
+  req.user = data.user;
+  next();
 }
 
-@media (max-width: 900px) {
-  .dashboard-container {
-    flex-direction: column;
-  }
-  .sidebar {
-    width: 100%;
-    min-height: 0;
-    border-radius: 0 0 var(--border-radius) var(--border-radius);
-    box-shadow: 0 2px 12px #bfa66922;
-    position: static;
-  }
-  .main-content {
-    padding: 16px 6vw;
-  }
-  .stats-grid,
-  .charts-section,
-  .pending-agencies {
-    padding-left: 0 !important;
-    padding-right: 0 !important;
-  }
-}
+// حماية جميع العمليات في هذا الملف (عدا تسجيل الدخول)
+router.use((req, res, next) => {
+  if (req.path === '/login-admin') return next();
+  verifyToken(req, res, next);
+});
 
-@media (max-width: 600px) {
-  .main-content {
-    padding: 7px 2vw;
-    gap: 18px;
+// ---------------------- إدارة المدراء ----------------------
+// إنشاء مدير عام
+router.post('/add-admin', async (req, res) => {
+  const { email, password, full_name } = req.body;
+  if (!email || !password || !full_name) {
+    return res.status(400).json({ error: 'يرجى إدخال جميع البيانات المطلوبة.' });
   }
-  .header {
-    flex-direction: column;
-    gap: 20px;
-    padding: 19px 8px 12px 8px;
+  // إنشاء مستخدم جديد في supabase auth
+  const { data: userData, error: signUpError } = await supabase.auth.admin.createUser({
+    email,
+    password,
+    email_confirm: true
+  });
+  if (signUpError) {
+    return res.status(500).json({ error: signUpError.message });
   }
-  .stats-grid {
-    flex-direction: column;
-    gap: 11px;
-    margin: 1rem 0;
+  const user = userData.user;
+  // إضافة المدير العام في جدول admins بدور 'main'
+  const { data, error } = await supabase.from('admins').insert([
+    {
+      id: user.id,
+      full_name,
+      email,
+      role: 'main',
+      created_by: null,
+      permissions: null
+    }
+  ]).select();
+  if (error) {
+    return res.status(500).json({ error: error.message });
   }
-  .charts-section {
-    flex-direction: column;
-    gap: 12px;
-    padding: 0;
-  }
-  .pending-agencies {
-    padding: 0 0;
-  }
-  .chart-card {
-    min-width: 0;
-    padding: 10px 2vw;
-  }
-  #pendingAgenciesTable th,
-  #pendingAgenciesTable td {
-    padding: 9px 5px;
-    font-size: 0.96em;
-  }
-}
+  res.json({ message: 'تم إنشاء المدير العام بنجاح', data });
+});
 
-/* ======= رسالة نجاح / خطأ ======= */
-.success-message,
-.error-message {
-  position: fixed;
-  top: 40px;
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 15px 30px;
-  border-radius: 8px;
-  font-size: 1.09em;
-  font-weight: 700;
-  z-index: 9999;
-  box-shadow: 0 2px 10px #bfa66922;
-  display: none;
-}
-.success-message {
-  background: #eaf7ec;
-  color: #176a3d;
-  border: 1.5px solid #b4e9c4;
-}
-.error-message {
-  background: #fff5ee;
-  color: #c0392b;
-  border: 1.5px solid #ffc5be;
-}
+// إضافة مدير فرعي جديد (sub_admin)
+// body: { email, password, full_name, role, permissions, created_by }
+router.post('/add-sub-admin', async (req, res) => {
+  // تحقق من أن المستخدم الحالي هو مدير عام
+  if (!req.user || !req.user.id) {
+    return res.status(401).json({ error: 'غير مصرح. يرجى تسجيل الدخول.' });
+  }
+  const { data: currentAdmin, error: currentAdminError } = await supabase.from('admins').select('role').eq('id', req.user.id).single();
+  if (currentAdminError || !currentAdmin || currentAdmin.role !== 'main') {
+    return res.status(403).json({ error: 'فقط المدير العام يمكنه إضافة المدراء الفرعيين.' });
+  }
+  const { email, password, full_name, role, permissions, created_by } = req.body;
+  if (!email || !password || !full_name || !role || !created_by) {
+    return res.status(400).json({ error: 'يرجى إدخال جميع البيانات المطلوبة.' });
+  }
+  // إنشاء مستخدم جديد في supabase auth
+  const { data: userData, error: signUpError } = await supabase.auth.admin.createUser({
+    email,
+    password,
+    email_confirm: true
+  });
+  if (signUpError) {
+    return res.status(500).json({ error: signUpError.message });
+  }
+  const user = userData.user;
+  // إضافة sub_admin في جدول admins
+  const { data, error } = await supabase.from('admins').insert([
+    {
+      id: user.id,
+      full_name,
+      email,
+      role,
+      created_by,
+      permissions
+    }
+  ]).select();
+  if (error) {
+    return res.status(500).json({ error: error.message });
+  }
+  res.json({ message: 'تم إنشاء المدير الفرعي بنجاح', data });
+});
+
+// جلب جميع المدراء (main & sub)
+router.get('/all', async (req, res) => {
+  const { data, error } = await supabase.from('admins').select('*');
+  if (error) {
+    return res.status(500).json({ error: error.message });
+  }
+  res.json({ admins: data });
+});
+
+router.post('/login-admin', async (req, res) => {
+  const { email, password } = req.body;
+  if (!email || !password) {
+    return res.status(400).json({ error: 'يرجى إدخال البريد الإلكتروني وكلمة المرور.' });
+  }
+  // تسجيل الدخول للمستخدم
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password
+  });
+  if (error) {
+    return res.status(401).json({ error: 'فشل تسجيل الدخول. يرجى التحقق من البريد الإلكتروني وكلمة المرور.' });
+  }
+  // إعادة التوكن مع بيانات المستخدم
+  res.json({
+    message: 'تم تسجيل الدخول بنجاح',
+    user: data.user,
+    access_token: data.session ? data.session.access_token : null,
+    refresh_token: data.session ? data.session.refresh_token : null
+  });
+});
+
+// حذف مدير (sub, supremmier) عبر id فقط، لا يمكن حذف main admin
+router.delete('/delete/:id', async (req, res) => {
+  const { id } = req.params;
+  // تحقق من أن المستخدم الحالي هو مدير عام
+  if (!req.user || !req.user.id) {
+    return res.status(401).json({ error: 'غير مصرح. يرجى تسجيل الدخول.' });
+  }
+  // جلب بيانات المستخدم الحالي من جدول admins
+  const { data: currentAdmin, error: currentAdminError } = await supabase.from('admins').select('role').eq('id', req.user.id).single();
+  if (currentAdminError || !currentAdmin || currentAdmin.role !== 'main') {
+    return res.status(403).json({ error: 'فقط المدير العام يمكنه حذف المدراء.' });
+  }
+  if (!id) {
+    return res.status(400).json({ error: 'يرجى إرسال معرف المدير.' });
+  }
+  // جلب المدير للتحقق من نوعه
+  const { data: admin, error: fetchError } = await supabase.from('admins').select('role').eq('id', id).single();
+  if (fetchError || !admin) {
+    return res.status(404).json({ error: 'المدير غير موجود.' });
+  }
+  if (admin.role === 'main') {
+    return res.status(403).json({ error: 'لا يمكن حذف المدير الرئيسي.' });
+  }
+  // حذف المدير من جدول admins
+  const { error } = await supabase.from('admins').delete().eq('id', id);
+  if (error) {
+    return res.status(500).json({ error: error.message });
+  }
+  res.json({ message: 'تم حذف المدير بنجاح' });
+});
+
+// تعديل بيانات مدير فرعي أو مميز (فقط المدير العام يمكنه التعديل)
+// PUT /api/admin/update/:id
+router.put('/update/:id', async (req, res) => {
+  const { id } = req.params;
+  // تحقق من أن المستخدم الحالي هو مدير عام
+  if (!req.user || !req.user.id) {
+    return res.status(401).json({ error: 'غير مصرح. يرجى تسجيل الدخول.' });
+  }
+  const { data: currentAdmin, error: currentAdminError } = await supabase.from('admins').select('role').eq('id', req.user.id).single();
+  if (currentAdminError || !currentAdmin || currentAdmin.role !== 'main') {
+    return res.status(403).json({ error: 'فقط المدير العام يمكنه تعديل المدراء.' });
+  }
+  // لا يمكن تعديل المدير الرئيسي
+  const { data: admin, error: fetchError } = await supabase.from('admins').select('role').eq('id', id).single();
+  if (fetchError || !admin) {
+    return res.status(404).json({ error: 'المدير غير موجود.' });
+  }
+  if (admin.role === 'main') {
+    return res.status(403).json({ error: 'لا يمكن تعديل المدير الرئيسي.' });
+  }
+  // تحديث كلمة المرور إذا تم إرسالها
+  let { password, ...fields } = req.body;
+  if (password && typeof password === 'string' && password.length >= 6) {
+    // تحديث كلمة المرور في supabase auth
+    const { error: passError } = await supabase.auth.admin.updateUser(id, { password });
+    if (passError) {
+      return res.status(500).json({ error: 'فشل في تحديث كلمة المرور: ' + passError.message });
+    }
+  }
+  // تحديث بقية البيانات في جدول admins
+  const { data: updated, error } = await supabase.from('admins').update(fields).eq('id', id).select();
+  if (error) {
+    return res.status(500).json({ error: error.message });
+  }
+  res.json({ message: 'تم تعديل بيانات المدير بنجاح', data: updated });
+});
+
+
+
+// تحديث حالة النشاط للمدير (فعلي)
+// body: { is_active (اختياري, default=true) }
+router.post('/update-activity-status', async (req, res) => {
+  try {
+    const admin_id = req.user && req.user.id;
+    if (!admin_id) {
+      return res.status(401).json({ error: 'غير مصرح. يرجى تسجيل الدخول.' });
+    }
+    const is_active = typeof req.body.is_active === 'boolean' ? req.body.is_active : true;
+    const now = new Date().toISOString();
+    // تحقق إذا كان هناك سجل سابق لهذا المدير
+    const { data: existing, error: fetchError } = await supabase
+      .from('admin_online_status')
+      .select('id')
+      .eq('admin_id', admin_id)
+      .single();
+    if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116: no rows found
+      return res.status(500).json({ error: fetchError.message });
+    }
+    if (existing && existing.id) {
+      // تحديث السجل الحالي
+      const { error: updateError } = await supabase
+        .from('admin_online_status')
+        .update({ is_active, last_seen: now })
+        .eq('id', existing.id);
+      if (updateError) {
+        return res.status(500).json({ error: updateError.message });
+      }
+    } else {
+      // إدراج سجل جديد
+      const { error: insertError } = await supabase
+        .from('admin_online_status')
+        .insert([{ admin_id, is_active, last_seen: now }]);
+      if (insertError) {
+        return res.status(500).json({ error: insertError.message });
+      }
+    }
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message || 'خطأ غير متوقع.' });
+  }
+});
+
+// جلب عدد المدراء النشطين الآن (فعلي)
+router.get('/active-now', async (req, res) => {
+  // جلب عدد المدراء النشطين الآن من جدول admin_online_status
+  // نشط إذا كان is_active = true و آخر ظهور خلال آخر 5 دقائق
+  const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+  const { count, error } = await supabase
+    .from('admin_online_status')
+    .select('*', { count: 'exact', head: true })
+    .eq('is_active', true)
+    .gte('last_seen', fiveMinutesAgo);
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ count: count || 0 });
+});
+
+module.exports = router;
