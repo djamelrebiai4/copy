@@ -29,6 +29,77 @@
             background-color: #f5f7fa;
             color: var(--dark-color);
             line-height: 1.6;
+            padding-top: 70px; /* مساحة للشريط العلوي */
+            padding-bottom: 70px; /* مساحة للشريط السفلي */
+        }
+
+        /* أنماط الشريط العلوي */
+        .top-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: var(--primary-color);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .top-nav {
+            display: flex;
+            gap: 20px;
+        }
+
+        .top-nav a {
+            color: white;
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .top-nav a:hover {
+            color: var(--gold-color);
+        }
+
+        /* أنماط الشريط السفلي */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: #666;
+            font-size: 12px;
+            transition: var(--transition);
+        }
+
+        .nav-item i {
+            font-size: 20px;
+            margin-bottom: 5px;
+        }
+
+        .nav-item.active {
+            color: var(--primary-color);
         }
 
         .container {
@@ -247,48 +318,10 @@
             transform: translateY(-2px);
         }
 
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            .agencies-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .header h1 {
-                font-size: 2rem;
-            }
-            
-            .header p {
-                font-size: 1rem;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .header {
-                padding: 40px 15px 30px;
-            }
-            
-            .agency-title {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 10px;
-            }
-            
-            .agency-footer {
-                flex-direction: column;
-                gap: 15px;
-                align-items: flex-start;
-            }
-            
-            .view-btn {
-                width: 100%;
-                justify-content: center;
-            }
-        }
-
         /* Floating Button */
         .floating-btn {
             position: fixed;
-            bottom: 30px;
+            bottom: 80px; /* تعديل الموقع ليتناسب مع الشريط السفلي */
             left: 30px;
             width: 60px;
             height: 60px;
@@ -309,16 +342,61 @@
             background: var(--accent-color);
             transform: translateY(-3px) scale(1.1);
         }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .agencies-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .header p {
+                font-size: 1rem;
+            }
+            
+            .top-nav {
+                display: none; /* إخفاء القائمة العلوية في الشاشات الصغيرة */
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header {
+                padding: 40px 15px 30px;
+                margin-top: 10px;
+            }
+            
+            .agency-title {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .agency-footer {
+                flex-direction: column;
+                gap: 15px;
+                align-items: flex-start;
+            }
+            
+            .view-btn {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .floating-btn {
+                bottom: 70px;
+                left: 20px;
+                width: 50px;
+                height: 50px;
+                font-size: 18px;
+            }
+        }
     </style>
 </head>
 <body>
-    <!-- Header Section -->
-    <header class="header">
-        <div class="container">
-            <h1>الوكالات المعتمدة للعمرة</h1>
-            <p>اختر أفضل الوكالات المعتمدة لأداء عمرة ميسرة ومريحة</p>
-        </div>
-    </header>
+  <div id="header-placeholder"></div>
 
     <!-- Main Content -->
     <main class="container">
@@ -543,10 +621,12 @@
         </section>
     </main>
 
+    
     <!-- Floating Button -->
     <button class="floating-btn">
         <i class="fas fa-headset"></i>
     </button>
+    <div id="bottom-nav-placeholder"></div>
 
     <script>
         // Search Functionality
@@ -587,6 +667,62 @@
             alert('مرحباً بك! كيف يمكننا مساعدتك؟');
             // يمكنك إضافة شات دعم أو رقم للاتصال
         });
+
+        // تفعيل العنصر النشط في الشريط السفلي
+        function activateBottomNav() {
+            const navItems = document.querySelectorAll('.bottom-nav .nav-item');
+            navItems.forEach(item => {
+                if (item.querySelector('i').classList.contains('fa-building')) {
+                    item.classList.add('active');
+                }
+                
+                item.addEventListener('click', function() {
+                    navItems.forEach(i => i.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+        }
+
+        // تفعيل الشريط السفلي عند تحميل الصفحة
+        document.addEventListener('DOMContentLoaded', function() {
+            activateBottomNav();
+            loadComponents(); // ← استدعاء تحميل الشرائط العلوية والسفلية
+        });
+        // استدعاء الشريط العلوي والسفلي من ملفات خارجية
+        async function loadComponents() {
+            try {
+                // تحميل الشريط العلوي
+                const headerResponse = await fetch('components/top-bar.html');
+                const headerHtml = await headerResponse.text();
+                document.getElementById('header-placeholder').innerHTML = headerHtml;
+                
+                // تحميل الشريط السفلي
+                const navResponse = await fetch('components/bottom-bar.html');
+                const navHtml = await navResponse.text();
+                document.getElementById('bottom-nav-placeholder').innerHTML = navHtml;
+                
+                // تفعيل التنقل السفلي بعد التحميل
+                setTimeout(activateBottomNav, 100);
+            } catch (error) {
+                console.error('Error loading components:', error);
+            }
+        }
+
+        // تفعيل العنصر النشط في الشريط السفلي
+        function activateBottomNav() {
+            const navItems = document.querySelectorAll('.bottom-nav .nav-item');
+            navItems.forEach(item => {
+                if (item.querySelector('i').classList.contains('fa-gift')) {
+                    item.classList.add('active');
+                }
+                
+                item.addEventListener('click', function() {
+                    navItems.forEach(i => i.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+        }
+
     </script>
 </body>
 </html>
