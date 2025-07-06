@@ -1,69 +1,130 @@
-// تحميل متغيرات البيئة من ملف .env
-require('dotenv').config();
+-- WARNING: This schema is for context only and is not meant to be run.
+-- Table order and constraints may not be valid for execution.
 
-// استيراد مكتبة إكسبريس
-const express = require('express');
-const cors = require('cors');
-const app = express();
-
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ limit: '50mb', extended: true }));
-
-app.use(cors({
-  origin: '*', // أو ضع الدومين الصحيح للواجهة إذا أردت الأمان
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
-
-// دعم استقبال البيانات بصيغة form-data (ملفات وصور)
-// const multer = require('multer');
-// const upload = multer();
-// app.use(upload.any()); // تم التعليق حتى لا يتعارض مع multer في الراوترات
-
-// استيراد عميل supabase
-const supabase = require('./supabaseClient');
-
-// استيراد ملفات المسارات (routes)
-const adminRoutes = require('./routes/admin/admin'); // مسارات الإدارة
-const agenciesRoutes = require('./routes/admin/agencies'); // مسارات الوكالات
-const bookingsRoutes = require('./routes/admin/bookings'); // مسارات الحجوزات
-const chatRoutes = require('./routes/admin/chat'); // مسارات الدردشة
-const offersRoutes = require('./routes/admin/offers'); // مسارات العروض
-const statsRoutes = require('./routes/admin/stats'); // مسارات الإحصائيات
-const airlinesRoutes = require('./routes/admin/airlines'); // مسارات شركات الطيران
-const uploadRoutes = require('./routes/admin/upload'); // رفع الملفات
-const siteStatsRoutes = require('./routes/admin/siteStats'); // مسارات إحصائيات الموقع
-// مسارات المستخدم (user)
-const viewAgenciesRoutes = require('./routes/user/view_agencies');
-const viewOfferRoutes = require('./routes/user/offer');
-
-// نقطة فحص صحة الاتصال بقاعدة البيانات
-app.get('/health', async (req, res) => {
-  const { data, error } = await supabase.from('agencies').select('*').limit(1);
-  if (error) {
-    return res.status(500).json({ status: 'error', error: error.message });
-  }
-  res.json({ status: 'ok', data });
-});
-
-// ربط المسارات الرئيسية للتطبيق
-app.use('/api/admin', adminRoutes);      // مسارات الإدارة
-app.use('/api/agencies', agenciesRoutes); // مسارات الوكالات
-app.use('/api/bookings', bookingsRoutes); // مسارات الحجوزات
-app.use('/api/chat', chatRoutes);         // مسارات الدردشة
-app.use('/api/offers', offersRoutes);     // مسارات العروض
-app.use('/api/stats', statsRoutes);      // مسارات الإحصائيات
-app.use('/api/airlines', airlinesRoutes);      // مسارات شركات الطيران
-app.use('/api/upload', uploadRoutes); // رفع الملفات
-app.use('/api/site-stats', siteStatsRoutes); // مسارات إحصائيات الموقع
-// ربط مسارات المستخدم (user)
-app.use('/api/user', viewAgenciesRoutes);
-// إضافة ربط لمسار /api/user/agency ليعمل جلب العروض النشطة:
-app.use('/api/user/agency', viewAgenciesRoutes);
-app.use('/api/user/offers', viewOfferRoutes);
-app.use('/api/user/with-offers-and-airports', viewOfferRoutes);
-// تشغيل السيرفر على المنفذ المحدد في ملف البيئة أو 3001 افتراضيًا
-const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+CREATE TABLE public.admins (
+  nom character varying,
+  email character varying UNIQUE,
+  mot_de_passe character varying,
+  id integer NOT NULL DEFAULT nextval('admins_id_seq'::regclass),
+  est_super_admin boolean DEFAULT false,
+  last_activity timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  langue_preferee character varying DEFAULT 'ar'::character varying,
+  CONSTRAINT admins_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.agences (
+  nom_agence character varying,
+  wilaya character varying,
+  telephone character varying,
+  email character varying UNIQUE,
+  mot_de_passe character varying,
+  photo_profil character varying,
+  photo_couverture character varying,
+  commercial_license_number character varying,
+  latitude double precision,
+  longitude double precision,
+  id integer NOT NULL DEFAULT nextval('agences_id_seq'::regclass),
+  approuve boolean DEFAULT false,
+  date_creation timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  date_modification timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  last_activity timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  langue_preferee character varying DEFAULT 'ar'::character varying,
+  CONSTRAINT agences_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.agences_secondaires (
+  agence_id integer NOT NULL,
+  telephone character varying,
+  mot_de_passe character varying,
+  wilaya character varying,
+  id integer NOT NULL DEFAULT nextval('agences_secondaires_id_seq'::regclass),
+  CONSTRAINT agences_secondaires_pkey PRIMARY KEY (id),
+  CONSTRAINT agences_secondaires_agence_id_fkey FOREIGN KEY (agence_id) REFERENCES public.agences(id)
+);
+CREATE TABLE public.chomber_images (
+  offre_id integer,
+  image_url character varying NOT NULL,
+  id integer NOT NULL DEFAULT nextval('chomber_images_id_seq'::regclass),
+  CONSTRAINT chomber_images_pkey PRIMARY KEY (id),
+  CONSTRAINT chomber_images_offre_id_fkey FOREIGN KEY (offre_id) REFERENCES public.offres(id)
+);
+CREATE TABLE public.demande_umrah (
+  nom character varying,
+  telephone character varying,
+  offre_id integer,
+  passport_image character varying,
+  wilaya character varying,
+  id integer NOT NULL DEFAULT nextval('demande_umrah_id_seq'::regclass),
+  statut character varying DEFAULT 'en_attente'::character varying CHECK (statut::text = ANY (ARRAY['en_attente'::character varying, 'accepte'::character varying, 'refuse'::character varying]::text[])),
+  date_demande timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT demande_umrah_pkey PRIMARY KEY (id),
+  CONSTRAINT demande_umrah_offre_id_fkey FOREIGN KEY (offre_id) REFERENCES public.offres(id)
+);
+CREATE TABLE public.messages (
+  sender_type character varying NOT NULL CHECK (sender_type::text = ANY (ARRAY['admin'::character varying, 'agence'::character varying]::text[])),
+  sender_id integer NOT NULL,
+  receiver_id integer NOT NULL,
+  message text NOT NULL,
+  id integer NOT NULL DEFAULT nextval('messages_id_seq'::regclass),
+  date_envoi timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT messages_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.offer_images (
+  offer_id integer NOT NULL,
+  image character varying NOT NULL,
+  id integer NOT NULL DEFAULT nextval('offer_images_id_seq'::regclass),
+  created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT offer_images_pkey PRIMARY KEY (id),
+  CONSTRAINT offer_images_offer_id_fkey FOREIGN KEY (offer_id) REFERENCES public.offres(id)
+);
+CREATE TABLE public.offres (
+  agence_id integer,
+  titre character varying,
+  description text,
+  prix_base numeric,
+  date_depart date,
+  date_retour date,
+  aeroport_depart character varying,
+  compagnie_aerienne character varying,
+  type_voyage character varying CHECK (type_voyage::text = ANY (ARRAY['Hajj'::character varying, 'Omra'::character varying]::text[])),
+  nom_hotel character varying,
+  numero_chambre character varying,
+  distance_haram numeric,
+  prix_2 numeric,
+  prix_3 numeric,
+  prix_4 numeric,
+  image_offre_principale character varying,
+  id integer NOT NULL DEFAULT nextval('offres_id_seq'::regclass),
+  est_doree boolean DEFAULT false,
+  service_guide boolean DEFAULT false,
+  service_transport boolean DEFAULT false,
+  service_nourriture boolean DEFAULT false,
+  service_assurance boolean DEFAULT false,
+  cadeau_bag boolean DEFAULT false,
+  cadeau_zamzam boolean DEFAULT false,
+  cadeau_parapluie boolean DEFAULT false,
+  cadeau_autre boolean DEFAULT false,
+  CONSTRAINT offres_pkey PRIMARY KEY (id),
+  CONSTRAINT offres_agence_id_fkey FOREIGN KEY (agence_id) REFERENCES public.agences(id)
+);
+CREATE TABLE public.sub_admin_permissions (
+  sub_admin_id integer NOT NULL,
+  permission_key character varying NOT NULL,
+  id integer NOT NULL DEFAULT nextval('sub_admin_permissions_id_seq'::regclass),
+  allow_view boolean DEFAULT false,
+  allow_add boolean DEFAULT false,
+  allow_edit boolean DEFAULT false,
+  allow_delete boolean DEFAULT false,
+  CONSTRAINT sub_admin_permissions_pkey PRIMARY KEY (id),
+  CONSTRAINT sub_admin_permissions_sub_admin_id_fkey FOREIGN KEY (sub_admin_id) REFERENCES public.sub_admins(id)
+);
+CREATE TABLE public.sub_admins (
+  nom character varying,
+  email character varying UNIQUE,
+  mot_de_passe character varying,
+  cree_par_admin_id integer,
+  id integer NOT NULL DEFAULT nextval('sub_admins_id_seq'::regclass),
+  last_activity timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT sub_admins_pkey PRIMARY KEY (id),
+  CONSTRAINT sub_admins_cree_par_admin_id_fkey FOREIGN KEY (cree_par_admin_id) REFERENCES public.admins(id)
+);
