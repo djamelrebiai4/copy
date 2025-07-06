@@ -665,58 +665,39 @@
     </button>
 
     <script>
-        // استدعاء الشريط العلوي والسفلي من ملفات خارجية
-        async function loadComponents() {
-            try {
-                // تحميل الشريط العلوي
-                const headerResponse = await fetch('components/header.html');
-                const headerHtml = await headerResponse.text();
-                document.getElementById('header-placeholder').innerHTML = headerHtml;
-                
-                // تحميل الشريط السفلي
-                const navResponse = await fetch('components/bottom-nav.html');
-                const navHtml = await navResponse.text();
-                document.getElementById('bottom-nav-placeholder').innerHTML = navHtml;
-                
-                // تفعيل التنقل السفلي بعد التحميل
-                setTimeout(activateBottomNav, 100);
-            } catch (error) {
-                console.error('Error loading components:', error);
-            }
-        }
+        // تحسين أداء البحث
+        const agencySearch = document.getElementById('agencySearch');
+        let searchTimeout;
 
-        // تفعيل العنصر النشط في الشريط السفلي
-        function activateBottomNav() {
-            const navItems = document.querySelectorAll('.bottom-nav .nav-item');
-            navItems.forEach(item => {
-                if (item.querySelector('i').classList.contains('fa-building')) {
-                    item.classList.add('active');
-                }
+        agencySearch.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                const searchTerm = this.value.trim().toLowerCase();
+                const agencies = document.querySelectorAll('.agency-card');
                 
-                item.addEventListener('click', function() {
-                    navItems.forEach(i => i.classList.remove('active'));
-                    this.classList.add('active');
+                agencies.forEach(agency => {
+                    const agencyName = agency.querySelector('.agency-name').textContent.toLowerCase();
+                    const agencyLocation = agency.querySelector('.agency-location').textContent.toLowerCase();
+                    const isVisible = agencyName.includes(searchTerm) || agencyLocation.includes(searchTerm);
+                    
+                    agency.style.display = isVisible ? 'block' : 'none';
                 });
-            });
-        }
+            }, 300); // تأخير 300 مللي ثانية لتحسين الأداء
+        });
 
-        // تبديل تفاصيل الوكالة
-        function toggleAgencyDetails(agencyId) {
-            const agencyCard = document.getElementById(agencyId);
-            agencyCard.classList.toggle('active');
-        }
-
-        // بحث الوكالات
-        document.getElementById('agencySearch').addEventListener('input', function() {
-            const searchTerm = this.value.toLowerCase();
-            const agencies = document.querySelectorAll('.agency-card');
-            
-            agencies.forEach(agency => {
-                const agencyName = agency.querySelector('.agency-name').textContent.toLowerCase();
-                if (agencyName.includes(searchTerm)) {
-                    agency.style.display = 'block';
-                } else {
-                    agency.style.display = 'none';
+        // تحسين تجربة المستخدم للبطاقات
+        document.querySelectorAll('.agency-header').forEach(header => {
+            header.addEventListener('click', function() {
+                const card = this.closest('.agency-card');
+                card.classList.toggle('active');
+                
+                // إغلاق البطاقات الأخرى عند فتح واحدة
+                if (card.classList.contains('active')) {
+                    document.querySelectorAll('.agency-card').forEach(otherCard => {
+                        if (otherCard !== card && otherCard.classList.contains('active')) {
+                            otherCard.classList.remove('active');
+                        }
+                    });
                 }
             });
         });
@@ -736,6 +717,38 @@
                 top: 0,
                 behavior: 'smooth'
             });
+        }
+
+        // استدعاء الشريط العلوي والسفلي من ملفات خارجية
+        async function loadComponents() {
+            try {
+                // تحميل الشريط العلوي
+                const headerResponse = await fetch('components/header.html');
+                const headerHtml = await headerResponse.text();
+                document.getElementById('header-placeholder').innerHTML = headerHtml;
+                
+                // تحميل الشريط السفلي
+                const navResponse = await fetch('components/bottom-nav.html');
+                const navHtml = await navResponse.text();
+                document.getElementById('bottom-nav-placeholder').innerHTML = navHtml;
+                
+                // تفعيل التنقل السفلي بعد التحميل
+                setTimeout(() => {
+                    const navItems = document.querySelectorAll('.bottom-nav .nav-item');
+                    navItems.forEach(item => {
+                        if (item.querySelector('i').classList.contains('fa-building')) {
+                            item.classList.add('active');
+                        }
+                        
+                        item.addEventListener('click', function() {
+                            navItems.forEach(i => i.classList.remove('active'));
+                            this.classList.add('active');
+                        });
+                    });
+                }, 100);
+            } catch (error) {
+                console.error('Error loading components:', error);
+            }
         }
 
         // تحميل المكونات عند بدء الصفحة
