@@ -1,694 +1,78 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>الوكالات المعتمدة للعمرة</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary-color: #1a5f7a;
-            --secondary-color: #57c5b6;
-            --accent-color: #159895;
-            --light-color: #f9f9f9;
-            --dark-color: #333;
-            --gold-color: #d4af37;
-            --shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            --transition: all 0.3s ease;
+// دالة لجلب العروض من API وعرضها في الصفحة
+async function fetchAndDisplayOffers() {
+    const offersContainer = document.querySelector('.offers-container');
+    offersContainer.innerHTML = '<div style="grid-column: 1/-1; text-align:center;">جاري التحميل...</div>';
+    try {
+        const response = await fetch('http://192.168.100.23:3001/api/user/offers');
+        const offers = await response.json();
+        if (!Array.isArray(offers) || offers.length === 0) {
+            offersContainer.innerHTML = '<div style="grid-column: 1/-1; text-align:center;">لا توجد عروض متاحة حالياً</div>';
+            return;
         }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Tajawal', sans-serif;
-        }
-
-        body {
-            background-color: #f5f7fa;
-            color: var(--dark-color);
-            line-height: 1.6;
-            padding-top: 70px; /* مساحة للشريط العلوي */
-            padding-bottom: 70px; /* مساحة للشريط السفلي */
-        }
-
-        /* أنماط الشريط العلوي */
-        .top-bar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            background: var(--primary-color);
-            color: white;
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            z-index: 1000;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .logo {
-            font-size: 1.5rem;
-            font-weight: bold;
-        }
-
-        .top-nav {
-            display: flex;
-            gap: 20px;
-        }
-
-        .top-nav a {
-            color: white;
-            text-decoration: none;
-            transition: var(--transition);
-        }
-
-        .top-nav a:hover {
-            color: var(--gold-color);
-        }
-
-        /* أنماط الشريط السفلي */
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: white;
-            display: flex;
-            justify-content: space-around;
-            padding: 10px 0;
-            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
-            z-index: 1000;
-        }
-
-        .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-decoration: none;
-            color: #666;
-            font-size: 12px;
-            transition: var(--transition);
-        }
-
-        .nav-item i {
-            font-size: 20px;
-            margin-bottom: 5px;
-        }
-
-        .nav-item.active {
-            color: var(--primary-color);
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        /* Header Styles */
-        .header {
-            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
-            color: white;
-            text-align: center;
-            padding: 60px 20px 40px;
-            position: relative;
-            margin-bottom: 30px;
-            box-shadow: var(--shadow);
-        }
-
-        .header::after {
-            content: '';
-            position: absolute;
-            bottom: -15px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 80px;
-            height: 4px;
-            background: var(--gold-color);
-            border-radius: 2px;
-        }
-
-        .header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-        }
-
-        .header p {
-            font-size: 1.1rem;
-            opacity: 0.9;
-        }
-
-        /* Search Section */
-        .search-section {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: var(--shadow);
-            margin-bottom: 30px;
-            position: relative;
-        }
-
-        .search-container {
-            position: relative;
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 15px 50px 15px 20px;
-            border: 2px solid #eee;
-            border-radius: 50px;
-            font-size: 16px;
-            transition: var(--transition);
-        }
-
-        .search-input:focus {
-            border-color: var(--secondary-color);
-            outline: none;
-        }
-
-        .search-icon {
-            position: absolute;
-            left: 20px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--primary-color);
-            font-size: 18px;
-        }
-
-        /* Agency Cards */
-        .agencies-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            gap: 25px;
-            margin-top: 30px;
-        }
-
-        .agency-card {
-            background: white;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: var(--shadow);
-            transition: var(--transition);
-            position: relative;
-        }
-
-        .agency-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-        }
-
-        .card-badge {
-            position: absolute;
-            top: 15px;
-            left: 15px;
-            background: var(--gold-color);
-            color: var(--primary-color);
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-weight: bold;
-            font-size: 12px;
-            z-index: 2;
-        }
-
-        .agency-image {
-            height: 200px;
-            width: 100%;
-            object-fit: cover;
-        }
-
-        .agency-content {
-            padding: 20px;
-        }
-
-        .agency-title {
-            font-size: 1.4rem;
-            color: var(--primary-color);
-            margin-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .agency-rating {
-            background: var(--gold-color);
-            color: white;
-            padding: 3px 10px;
-            border-radius: 20px;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-        }
-
-        .agency-rating i {
-            margin-right: 5px;
-            font-size: 12px;
-        }
-
-        .agency-meta {
-            display: flex;
-            align-items: center;
-            margin-bottom: 15px;
-            color: #666;
-        }
-
-        .agency-meta i {
-            margin-left: 5px;
-            color: var(--secondary-color);
-        }
-
-        .agency-description {
-            margin-bottom: 20px;
-            color: #555;
-            font-size: 15px;
-        }
-
-        .agency-features {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .feature-badge {
-            background: rgba(87, 197, 182, 0.1);
-            color: var(--accent-color);
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 13px;
-        }
-
-        .agency-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-top: 1px solid #eee;
-            padding-top: 15px;
-        }
-
-        .agency-price {
-            font-weight: bold;
-            color: var(--primary-color);
-            font-size: 1.2rem;
-        }
-
-        .agency-price span {
-            font-size: 14px;
-            color: #777;
-            font-weight: normal;
-        }
-
-        .view-btn {
-            background: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 8px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: var(--transition);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .view-btn:hover {
-            background: var(--accent-color);
-            transform: translateY(-2px);
-        }
-
-        /* Floating Button */
-        .floating-btn {
-            position: fixed;
-            bottom: 80px; /* تعديل الموقع ليتناسب مع الشريط السفلي */
-            left: 30px;
-            width: 60px;
-            height: 60px;
-            background: var(--primary-color);
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            cursor: pointer;
-            transition: var(--transition);
-            z-index: 100;
-        }
-
-        .floating-btn:hover {
-            background: var(--accent-color);
-            transform: translateY(-3px) scale(1.1);
-        }
-
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            .agencies-grid {
-                grid-template-columns: 1fr;
+        offersContainer.innerHTML = offers.map(offer => {
+            // الخدمات (services) كأيقونات
+            let servicesHtml = '';
+            if (offer.services && typeof offer.services === 'object') {
+                servicesHtml = Object.keys(offer.services).filter(key => offer.services[key]).map(key => {
+                    let icon = '';
+                    if (key === 'visa') icon = '<i class="fas fa-passport" title="تأشيرة"></i>';
+                    else if (key === 'meals') icon = '<i class="fas fa-utensils" title="وجبات"></i>';
+                    else if (key === 'transport') icon = '<i class="fas fa-bus" title="نقل"></i>';
+                    else icon = '<i class="fas fa-check-circle"></i>';
+                    return `<span class="offer-detail">${icon}</span>`;
+                }).join(' ');
             }
-            
-            .header h1 {
-                font-size: 2rem;
-            }
-            
-            .header p {
-                font-size: 1rem;
-            }
-            
-            .top-nav {
-                display: none; /* إخفاء القائمة العلوية في الشاشات الصغيرة */
-            }
-        }
-
-        @media (max-width: 480px) {
-            .header {
-                padding: 40px 15px 30px;
-                margin-top: 10px;
-            }
-            
-            .agency-title {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 10px;
-            }
-            
-            .agency-footer {
-                flex-direction: column;
-                gap: 15px;
-                align-items: flex-start;
-            }
-            
-            .view-btn {
-                width: 100%;
-                justify-content: center;
-            }
-            
-            .floating-btn {
-                bottom: 70px;
-                left: 20px;
-                width: 50px;
-                height: 50px;
-                font-size: 18px;
-            }
-        }
-    </style>
-</head>
-<body>
-  <div id="header-placeholder"></div>
-
-    <!-- Main Content -->
-    <main class="container">
-        <!-- Search Section -->
-        <section class="search-section">
-            <div class="search-container">
-                <input type="text" class="search-input" placeholder="ابحث عن وكالة...">
-                <i class="fas fa-search search-icon"></i>
-            </div>
-        </section>
-
-        <!-- Agencies Grid -->
-        <section class="agencies-grid">
-            <!-- Agency 1 -->
-            <div class="agency-card">
-                <span class="card-badge">ممتاز</span>
-                <img src="https://images.unsplash.com/photo-1551782450-a2132b4ba21d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2069&q=80" alt="الراجحي للعمرة" class="agency-image">
-                <div class="agency-content">
-                    <div class="agency-title">
-                        <h3>الراجحي للعمرة</h3>
-                        <span class="agency-rating">
-                            <i class="fas fa-star"></i> 4.8
-                        </span>
-                    </div>
-                    <div class="agency-meta">
-                        <i class="fas fa-map-marker-alt"></i>
-                        <span>الرياض، مكة، المدينة المنورة</span>
-                    </div>
-                    <p class="agency-description">
-                        وكالة متخصصة في خدمات العمرة منذ 15 عاماً، تقدم برامج متكاملة بأسعار تنافسية وخدمات مميزة.
-                    </p>
-                    <div class="agency-features">
-                        <span class="feature-badge">فنادق 5 نجوم</span>
-                        <span class="feature-badge">مواصلات فاخرة</span>
-                        <span class="feature-badge">مرشدين متخصصين</span>
-                    </div>
-                    <div class="agency-footer">
-                        <div class="agency-price">
-                            2,500 ر.س <span>ابتداءً من</span>
-                        </div>
-                        <button class="view-btn">
-                            <i class="fas fa-eye"></i>
-                            عرض التفاصيل
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Agency 2 -->
-            <div class="agency-card">
-                <span class="card-badge">عروض خاصة</span>
-                <img src="https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80" alt="الهدى للعمرة" class="agency-image">
-                <div class="agency-content">
-                    <div class="agency-title">
-                        <h3>الهدى للعمرة</h3>
-                        <span class="agency-rating">
-                            <i class="fas fa-star"></i> 4.6
-                        </span>
-                    </div>
-                    <div class="agency-meta">
-                        <i class="fas fa-map-marker-alt"></i>
-                        <span>جدة، مكة المكرمة</span>
-                    </div>
-                    <p class="agency-description">
-                        وكالة رائدة في تنظيم رحلات العمرة ببرامج متنوعة تناسب جميع الفئات، مع اهتمام خاص بالعائلات.
-                    </p>
-                    <div class="agency-features">
-                        <span class="feature-badge">برامج عائلية</span>
-                        <span class="feature-badge">عمرة رمضان</span>
-                        <span class="feature-badge">رحلات يومية</span>
-                    </div>
-                    <div class="agency-footer">
-                        <div class="agency-price">
-                            1,800 ر.س <span>ابتداءً من</span>
-                        </div>
-                        <button class="view-btn">
-                            <i class="fas fa-eye"></i>
-                            عرض التفاصيل
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Agency 3 -->
-            <div class="agency-card">
-                <span class="card-badge">VIP</span>
-                <img src="https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80" alt="الرحمة للعمرة" class="agency-image">
-                <div class="agency-content">
-                    <div class="agency-title">
-                        <h3>الرحمة للعمرة</h3>
-                        <span class="agency-rating">
-                            <i class="fas fa-star"></i> 4.9
-                        </span>
-                    </div>
-                    <div class="agency-meta">
-                        <i class="fas fa-map-marker-alt"></i>
-                        <span>الرياض، الدمام، المدينة</span>
-                    </div>
-                    <p class="agency-description">
-                        وكالة فاخرة تقدم برامج عمرة مميزة مع إقامة في أفخم الفنادق وخدمات شخصية راقية.
-                    </p>
-                    <div class="agency-features">
-                        <span class="feature-badge">خدمة VIP</span>
-                        <span class="feature-badge">فنادق فاخرة</span>
-                        <span class="feature-badge">برامج خاصة</span>
-                    </div>
-                    <div class="agency-footer">
-                        <div class="agency-price">
-                            5,500 ر.س <span>ابتداءً من</span>
-                        </div>
-                        <button class="view-btn">
-                            <i class="fas fa-eye"></i>
-                            عرض التفاصيل
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Agency 4 -->
-            <div class="agency-card">
-                <img src="https://images.unsplash.com/photo-1582719471386-3a0679420a15?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80" alt="البيت المعمور" class="agency-image">
-                <div class="agency-content">
-                    <div class="agency-title">
-                        <h3>البيت المعمور</h3>
-                        <span class="agency-rating">
-                            <i class="fas fa-star"></i> 4.5
-                        </span>
-                    </div>
-                    <div class="agency-meta">
-                        <i class="fas fa-map-marker-alt"></i>
-                        <span>مكة المكرمة، جدة</span>
-                    </div>
-                    <p class="agency-description">
-                        وكالة متخصصة في برامج العمرة الاقتصادية مع الحفاظ على جودة الخدمات والراحة للمعتمرين.
-                    </p>
-                    <div class="agency-features">
-                        <span class="feature-badge">أسعار اقتصادية</span>
-                        <span class="feature-badge">رحلات جماعية</span>
-                        <span class="feature-badge">مرشدين متخصصين</span>
-                    </div>
-                    <div class="agency-footer">
-                        <div class="agency-price">
-                            1,200 ر.س <span>ابتداءً من</span>
-                        </div>
-                        <button class="view-btn">
-                            <i class="fas fa-eye"></i>
-                            عرض التفاصيل
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Agency 5 -->
-            <div class="agency-card">
-                <span class="card-badge">جديد</span>
-                <img src="https://images.unsplash.com/photo-1436491865332-7a61a109cc05?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2072&q=80" alt="الكعبة للعمرة" class="agency-image">
-                <div class="agency-content">
-                    <div class="agency-title">
-                        <h3>الكعبة للعمرة</h3>
-                        <span class="agency-rating">
-                            <i class="fas fa-star"></i> 4.7
-                        </span>
-                    </div>
-                    <div class="agency-meta">
-                        <i class="fas fa-map-marker-alt"></i>
-                        <span>جميع مناطق المملكة</span>
-                    </div>
-                    <p class="agency-description">
-                        وكالة شاملة تقدم برامج عمرة لجميع مناطق المملكة مع خيارات متعددة تناسب جميع الاحتياجات.
-                    </p>
-                    <div class="agency-features">
-                        <span class="feature-badge">برامج متنوعة</span>
-                        <span class="feature-badge">خدمة 24/7</span>
-                        <span class="feature-badge">دعم فوري</span>
-                    </div>
-                    <div class="agency-footer">
-                        <div class="agency-price">
-                            1,950 ر.س <span>ابتداءً من</span>
-                        </div>
-                        <button class="view-btn">
-                            <i class="fas fa-eye"></i>
-                            عرض التفاصيل
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Agency 6 -->
-            <div class="agency-card">
-                <span class="card-badge">عروض عائلية</span>
-                <img src="https://images.unsplash.com/photo-1527631746610-bca00a040d60?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80" alt="السنابل للعمرة" class="agency-image">
-                <div class="agency-content">
-                    <div class="agency-title">
-                        <h3>السنابل للعمرة</h3>
-                        <span class="agency-rating">
-                            <i class="fas fa-star"></i> 4.4
-                        </span>
-                    </div>
-                    <div class="agency-meta">
-                        <i class="fas fa-map-marker-alt"></i>
-                        <span>الرياض، القصيم، المدينة</span>
-                    </div>
-                    <p class="agency-description">
-                        وكالة متخصصة في البرامج العائلية للعمرة مع توفير كل ما يلزم لراحة العائلات والأطفال.
-                    </p>
-                    <div class="agency-features">
-                        <span class="feature-badge">برامج عائلية</span>
-                        <span class="feature-badge">أنشطة للأطفال</span>
-                        <span class="feature-badge">رحلات مخصصة</span>
-                    </div>
-                    <div class="agency-footer">
-                        <div class="agency-price">
-                            2,300 ر.س <span>ابتداءً من</span>
-                        </div>
-                        <button class="view-btn">
-                            <i class="fas fa-eye"></i>
-                            عرض التفاصيل
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </main>
-
-    
-    <!-- Floating Button -->
-    <button class="floating-btn">
-        <i class="fas fa-headset"></i>
-    </button>
-    <div id="bottom-nav-placeholder"></div>
-
-    <script>
-        // Search Functionality
-        const searchInput = document.querySelector('.search-input');
-        const agencyCards = document.querySelectorAll('.agency-card');
-
-        searchInput.addEventListener('input', function() {
-            const searchTerm = this.value.trim().toLowerCase();
-            
-            agencyCards.forEach(card => {
-                const title = card.querySelector('.agency-title h3').textContent.toLowerCase();
-                const location = card.querySelector('.agency-meta span').textContent.toLowerCase();
-                const description = card.querySelector('.agency-description').textContent.toLowerCase();
+            // اسم الوكالة الحقيقي
+            let agencyName = offer.agencies && offer.agencies.name ? offer.agencies.name : '';
+            // صورة العرض واسمها
+            let mainImage = offer.main_image || (offer.hotel_images && offer.hotel_images[0]) || '';
+            let imageName = mainImage ? mainImage.split('/').pop() : '';
+            // الموقع (entry/exit)
+            let location = '';
+            if (offer.entry && offer.exit) location = `${offer.entry} - ${offer.exit}`;
+            else if (offer.entry) location = offer.entry;
+            else if (offer.exit) location = offer.exit;
+            return `
+            <div class="offer-card">
+                <img src="${mainImage}" alt="${offer.title || ''}" class="offer-image">
                 
-                if (title.includes(searchTerm) || location.includes(searchTerm) || description.includes(searchTerm)) {
-                    card.style.display = 'block';
-                } else {
-                    card.style.display = 'none';
-                }
-            });
-        });
+                <div class="offer-content">
+                    <div class="offer-agency"><i class="fas fa-building"></i> ${agencyName}</div>
+                    <h3 class="offer-title">${offer.title || ''}</h3>
+                    <div class="offer-details">
+                        ${servicesHtml}
+                        <span class="offer-detail"><i class="fas fa-map-marker-alt"></i> ${location || ''}</span>
+                    </div>
+                    <p class="offer-description">${offer.description || ''}</p>
+                    <div class="offer-price">
+                      <span class="price-amount" style="display: flex; flex-direction: column; align-items: flex-end; order:2; margin-right: 0px;">
+  <span style="display: inline-block; text-align: center; line-height: 1; margin-bottom: 0px;">
+    <span style="display: flex; justify-content: center; gap: 3px;">
+      <i class="fas fa-user" style="color:#d4af37;"></i>
+      <i class="fas fa-user" style="color:#d4af37;"></i>
+      <i class="fas fa-user" style="color:#d4af37;"></i>
+    </span>
+    <span style="display: flex; justify-content: center; gap: 3px; margin-top: 3px;">
+      <i class="fas fa-user" style="color:#d4af37;"></i>
+      <i class="fas fa-user" style="color:#d4af37;"></i>
+    </span>
+  </span>
+  <span style="font-weight: bold; color: #004d40; font-size: 1.05rem;">
+    ${Number(offer.price_quint) ? offer.price_quint + ' DA' : '<span style="color:#bfa338;font-size:0.98em">غير متوفر</span>'}
+  </span>
+</span>
 
-        // View Details Button
-        const viewButtons = document.querySelectorAll('.view-btn');
-        
-        viewButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                const agencyTitle = this.closest('.agency-card').querySelector('.agency-title h3').textContent;
-                alert(`سيتم عرض تفاصيل وكالة ${agencyTitle}`);
-                // يمكنك استبدال هذا بفتح نموذج أو صفحة تفاصيل
-            });
-        });
-
-        // Floating Button
-        const floatingBtn = document.querySelector('.floating-btn');
-        
-        floatingBtn.addEventListener('click', function() {
-            alert('مرحباً بك! كيف يمكننا مساعدتك؟');
-            // يمكنك إضافة شات دعم أو رقم للاتصال
-        });
-
-        // تفعيل العنصر النشط في الشريط السفلي
-        function activateBottomNav() {
-            const navItems = document.querySelectorAll('.bottom-nav .nav-item');
-            navItems.forEach(item => {
-                if (item.querySelector('i').classList.contains('fa-building')) {
-                    item.classList.add('active');
-                }
-                
-                item.addEventListener('click', function() {
-                    navItems.forEach(i => i.classList.remove('active'));
-                    this.classList.add('active');
-                });
-            });
-        }
-
-        // تفعيل الشريط السفلي عند تحميل الصفحة
-        document.addEventListener('DOMContentLoaded', function() {
-            activateBottomNav();
-            loadComponents(); // ← استدعاء تحميل الشرائط العلوية والسفلية
-        });
-        // استدعاء الشريط العلوي والسفلي من ملفات خارجية
+                        <button class="offer-btn" style="order:1; margin-left:0px;" onclick="window.location.href='offer-details.html?id=${offer.id}'"><i class="fas fa-eye"></i> تفاصيل</button>
+                    </div>
+                </div>
+            </div>
+            `;
+        }).join('');
+    } catch (err) {
+        offersContainer.innerHTML = '<div style="grid-column: 1/-1; text-align:center; color:red;">حدث خطأ أثناء جلب العروض</div>';
+    }
+}
+// استدعاء الشريط العلوي والسفلي من ملفات خارجية
         async function loadComponents() {
             try {
                 // تحميل الشريط العلوي
@@ -723,6 +107,33 @@
             });
         }
 
-    </script>
-</body>
-</html>
+        // زر العودة للأعلى
+        window.addEventListener('scroll', function() {
+            const scrollTopBtn = document.querySelector('.scroll-top');
+            if (window.scrollY > 300) {
+                scrollTopBtn.style.display = 'flex';
+            } else {
+                scrollTopBtn.style.display = 'none';
+            }
+        });
+
+        function scrollToTop() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+
+        // تفعيل فلترة العروض
+        document.querySelector('.filter-btn').addEventListener('click', function() {
+            // هنا يمكنك إضافة منطق الفلترة الفعلي
+            alert('تم تطبيق عوامل التصفية المحددة');
+        });
+
+        // تحميل المكونات عند بدء الصفحة
+        document.addEventListener('DOMContentLoaded', function() {
+            loadComponents();
+            fetchAndDisplayOffers();
+        });
+// نفذ عند تحميل الصفحة
+window.addEventListener('DOMContentLoaded', fetchAndDisplayOffers);
