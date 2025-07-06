@@ -1,150 +1,374 @@
-// دالة لجلب العروض من API وعرضها في الصفحة
-async function fetchAndDisplayOffers() {
-    const offersContainer = document.querySelector('.offers-container');
-    offersContainer.innerHTML = '<div style="grid-column: 1/-1; text-align:center;">جاري التحميل...</div>';
-    try {
-        const response = await fetch('http://192.168.100.23:3001/api/user/offers');
-        const offers = await response.json();
-        if (!Array.isArray(offers) || offers.length === 0) {
-            offersContainer.innerHTML = '<div style="grid-column: 1/-1; text-align:center;">لا توجد عروض متاحة حالياً</div>';
-            return;
-        }
-        // تحديد أقل سعر quint متوفر
-        let minPrice = Infinity;
-        let bestOfferId = null;
-        offers.forEach(offer => {
-            if (Number(offer.price_quint) && Number(offer.price_quint) < minPrice) {
-                minPrice = Number(offer.price_quint);
-                bestOfferId = offer.id;
-            }
-        });
-        offersContainer.innerHTML = offers.map(offer => {
-            // الخدمات (services) كأيقونات
-            let servicesHtml = '';
-            if (offer.services && typeof offer.services === 'object') {
-                servicesHtml = Object.keys(offer.services).filter(key => offer.services[key]).map(key => {
-                    let icon = '';
-                    if (key === 'visa') icon = '<i class="fas fa-passport" title="تأشيرة"></i>';
-                    else if (key === 'meals') icon = '<i class="fas fa-utensils" title="وجبات"></i>';
-                    else if (key === 'transport') icon = '<i class="fas fa-bus" title="نقل"></i>';
-                    else icon = '<i class="fas fa-check-circle"></i>';
-                    return `<span class="offer-detail">${icon}</span>`;
-                }).join(' ');
-            }
-            // اسم الوكالة الحقيقي
-            let agencyName = offer.agencies && offer.agencies.name ? offer.agencies.name : '';
-            // صورة العرض واسمها
-            let mainImage = offer.main_image || (offer.hotel_images && offer.hotel_images[0]) || '';
-            let imageName = mainImage ? mainImage.split('/').pop() : '';
-            // الموقع (entry/exit)
-            let location = '';
-            if (offer.entry && offer.exit) location = `${offer.entry} - ${offer.exit}`;
-            else if (offer.entry) location = offer.entry;
-            else if (offer.exit) location = offer.exit;
-            // شارة أفضل عرض
-            let bestBadge = (offer.id === bestOfferId) ? `<div class="offer-badge best-offer"><i class='fas fa-crown'></i> أفضل عرض</div>` : '';
-            return `
-            <div class="offer-card">
-                ${bestBadge}
-                <img src="${mainImage}" alt="${offer.title || ''}" class="offer-image">
-                
-                <div class="offer-content">
-                    <div class="offer-agency"><i class="fas fa-building"></i> ${agencyName}</div>
-                    <h3 class="offer-title">${offer.title || ''}</h3>
-                    <div class="offer-details">
-                        ${servicesHtml}
-                        <span class="offer-detail"><i class="fas fa-map-marker-alt"></i> ${location || ''}</span>
-                    </div>
-                    <div class="offer-price">
-                      <span class="price-amount" style="display: flex; flex-direction: column; align-items: flex-end; order:2; margin-right: 0px;">
-                          <span style="display: inline-block; text-align: center; line-height: 1; margin-bottom: 0px;">
-                            <span style="display: flex; justify-content: center; gap: 3px;">
-                              <i class="fas fa-user" style="color:#d4af37;"></i>
-                              <i class="fas fa-user" style="color:#d4af37;"></i>
-                              <i class="fas fa-user" style="color:#d4af37;"></i>
-                            </span>
-                            <span style="display: flex; justify-content: center; gap: 3px; margin-top: 3px;">
-                              <i class="fas fa-user" style="color:#d4af37;"></i>
-                              <i class="fas fa-user" style="color:#d4af37;"></i>
-                            </span>
-                          </span>
-                          <span style="font-weight: bold; color: #004d40; font-size: 1.05rem;">
-                            ${Number(offer.price_quint) ? offer.price_quint + ' DA' : '<span style="color:#bfa338;font-size:0.98em">غير متوفر</span>'}
-                          </span>
-                      </span>
-
-                        <button class="offer-btn" style="order:1; margin-left:0px;" onclick="window.location.href='offer-details.html?id=${offer.id}'"><i class="fas fa-eye"></i> تفاصيل</button>
-                    </div>
-                </div>
-            </div>
-            `;
-        }).join('');
-    } catch (err) {
-        offersContainer.innerHTML = '<div style="grid-column: 1/-1; text-align:center; color:red;">حدث خطأ أثناء جلب العروض</div>';
-    }
+:root {
+  --main-green: #186049;
+  --second-green: #23a084;
+  --gold: #f4d078;
+  --gold-dark: #bfa338;
+  --white: #fff;
+  --light: #f8f9fa;
+  --shadow: 0 4px 20px 0 rgba(30, 41, 59, 0.09);
+  --radius: 16px;
+  --transition: all 0.3s cubic-bezier(.4,1,.7,1);
+  --main-font: 'Tajawal', 'Amiri', Arial, sans-serif;
 }
-// استدعاء الشريط العلوي والسفلي من ملفات خارجية
-        async function loadComponents() {
-            try {
-                // تحميل الشريط العلوي
-                const headerResponse = await fetch('components/top-bar.html');
-                const headerHtml = await headerResponse.text();
-                document.getElementById('header-placeholder').innerHTML = headerHtml;
-                
-                // تحميل الشريط السفلي
-                const navResponse = await fetch('components/bottom-bar.html');
-                const navHtml = await navResponse.text();
-                document.getElementById('bottom-nav-placeholder').innerHTML = navHtml;
-                
-                // تفعيل التنقل السفلي بعد التحميل
-                setTimeout(activateBottomNav, 100);
-            } catch (error) {
-                console.error('Error loading components:', error);
-            }
-        }
 
-        // تفعيل العنصر النشط في الشريط السفلي
-        function activateBottomNav() {
-            const navItems = document.querySelectorAll('.bottom-nav .nav-item');
-            navItems.forEach(item => {
-                if (item.querySelector('i').classList.contains('fa-gift')) {
-                    item.classList.add('active');
-                }
-                
-                item.addEventListener('click', function() {
-                    navItems.forEach(i => i.classList.remove('active'));
-                    this.classList.add('active');
-                });
-            });
-        }
+html, body {
+  font-family: var(--main-font);
+  background: var(--light);
+  color: #222;
+  min-height: 100vh;
+  direction: rtl;
+}
 
-        // زر العودة للأعلى
-        window.addEventListener('scroll', function() {
-            const scrollTopBtn = document.querySelector('.scroll-top');
-            if (window.scrollY > 300) {
-                scrollTopBtn.style.display = 'flex';
-            } else {
-                scrollTopBtn.style.display = 'none';
-            }
-        });
+.page-bg {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(130deg, #e0f2f1 0%, #f8f9fa 100%);
+  background-image: url('https://images.unsplash.com/photo-1512053364647-ec919a8d4b4d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80');
+  background-size: cover;
+  background-position: center;
+  z-index: -2;
+  filter: blur(10px) brightness(0.94);
+  opacity: 0.75;
+}
 
-        function scrollToTop() {
-            window.scrollTo({
-                top: 0,
-                behavior: 'smooth'
-            });
-        }
+.page-header {
+  background: linear-gradient(120deg, var(--main-green), var(--second-green));
+  color: var(--white);
+  text-align: center;
+  padding: 90px 20px 40px 20px;
+  position: relative;
+  margin-bottom: 32px;
+  box-shadow: var(--shadow);
+  margin-top: 70px;
+  border-radius: 0 0 var(--radius) var(--radius);
+}
+.page-header::after {
+  content: '';
+  display: block;
+  width: 65px;
+  height: 4px;
+  background: var(--gold);
+  margin: 18px auto 0;
+  border-radius: 2px;
+}
+.page-title {
+  font-family: 'Amiri', serif;
+  font-size: 2.4rem;
+  letter-spacing: -1px;
+  margin-bottom: 8px;
+  font-weight: 700;
+}
+.page-subtitle {
+  font-size: 1.04rem;
+  opacity: 0.95;
+}
 
-        // تفعيل فلترة العروض
-        document.querySelector('.filter-btn').addEventListener('click', function() {
-            // هنا يمكنك إضافة منطق الفلترة الفعلي
-            alert('تم تطبيق عوامل التصفية المحددة');
-        });
+.filters-section {
+  background: var(--white);
+  box-shadow: var(--shadow);
+  border-radius: var(--radius);
+  margin: 0 16px 28px 16px;
+  padding: 15px 18px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px 22px;
+  align-items: flex-end;
+  justify-content: space-between;
+  position: relative;
+}
 
-        // تحميل المكونات عند بدء الصفحة
-        document.addEventListener('DOMContentLoaded', function() {
-            loadComponents();
-            fetchAndDisplayOffers();
-        });
-// نفذ عند تحميل الصفحة
-window.addEventListener('DOMContentLoaded', fetchAndDisplayOffers);
+.filter-group {
+  flex: 1 1 145px;
+  min-width: 130px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.filter-label {
+  font-weight: 500;
+  color: var(--main-green);
+  margin-bottom: 4px;
+  font-size: 15px;
+}
+.filter-select {
+  border: 1.5px solid #e0e0e0;
+  border-radius: 7px;
+  font-size: 15.5px;
+  padding: 9px 13px;
+  font-family: var(--main-font);
+  background: var(--light);
+  transition: border .2s;
+}
+.filter-select:focus {
+  border-color: var(--main-green);
+  outline: none;
+}
+.filter-btn {
+  background: var(--gold);
+  color: var(--main-green);
+  border: none;
+  border-radius: 8px;
+  padding: 13px 28px;
+  font-weight: bold;
+  font-size: 1rem;
+  cursor: pointer;
+  box-shadow: 0 2px 7px rgba(212, 175, 55, 0.08);
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.filter-btn:hover, .filter-btn:focus {
+  background: var(--gold-dark);
+  color: var(--white);
+  transform: translateY(-2px) scale(1.03);
+  outline: none;
+}
+
+/* Cards */
+.offers-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 0 44px;
+  padding: 48px 24px 120px 24px;
+  align-items: stretch;
+  background: #f5f7fa;
+  border-radius: 22px;
+  box-shadow: 0 8px 36px 0 rgba(30, 41, 59, 0.10);
+}
+.offer-card {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px 0 rgba(76,175,80,0.10), 0 16px 32px -8px #4caf5022;
+  overflow: hidden;
+  transition: box-shadow 0.3s, transform 0.25s, border-color 0.25s;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  position: relative;
+  border: 2px solid #e0e0e0;
+  margin-bottom: 38px;
+}
+.offer-card:hover {
+  transform: translateY(-8px) scale(1.025);
+  box-shadow: 0 18px 48px 0 #43a04733, 0 24px 48px -8px #4caf5044;
+  border-color: #43a047;
+}
+.offer-badge {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  background: var(--gold-color, #d4af37);
+  color: #fff;
+  padding: 6px 15px;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 13px;
+  z-index: 2;
+  box-shadow: 0 2px 7px rgba(212, 175, 55, 0.11);
+  letter-spacing: 0.2px;
+}
+.offer-badge.best-offer {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  left: auto;
+  background: linear-gradient(90deg, #ffd700 60%, #fffbe6 100%);
+  color: #388e3c;
+  padding: 7px 22px;
+  border-radius: 22px;
+  font-weight: 900;
+  font-size: 1.08rem;
+  z-index: 3;
+  box-shadow: 0 2px 12px #ffd70033;
+  letter-spacing: 0.3px;
+  border: 2px solid #388e3c;
+  text-shadow: 0 1px 0 #fffbe6;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.offer-badge.best-offer i {
+  color: #388e3c;
+  font-size: 1.2em;
+}
+.offer-image {
+  width: 100%;
+  height: 210px;
+  object-fit: cover;
+  border-bottom: 2px solid #e0e0e0;
+  background: #f9f9f9;
+  transition: filter 0.35s, box-shadow 0.3s;
+  filter: brightness(1.06) contrast(1.08);
+  box-shadow: 0 4px 18px 0 #4caf5011;
+}
+.offer-card:hover .offer-image {
+  filter: brightness(1.10) contrast(1.13);
+  box-shadow: 0 8px 32px 0 #43a04722;
+}
+.offer-content {
+  padding: 20px 18px 18px 18px;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+.offer-agency {
+  display: flex;
+  align-items: center;
+  font-size: 1.13rem;
+  color: #388e3c;
+  font-weight: 700;
+  margin-bottom: 4px;
+  gap: 7px;
+  letter-spacing: 0.2px;
+}
+.offer-title {
+  font-size: 1.35rem;
+  color: #186049;
+  font-weight: bold;
+  margin-bottom: 10px;
+  letter-spacing: -0.5px;
+  text-shadow: 0 1px 0 #d4af371a;
+  line-height: 1.3;
+}
+.offer-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 22px;
+  margin-bottom: 15px;
+}
+.offer-detail {
+  display: flex;
+  align-items: center;
+  font-size: 1.08rem;
+  color: #388e3c;
+  gap: 7px;
+  background: #e8f5e9;
+  border-radius: 7px;
+  padding: 4px 10px 4px 8px;
+  font-weight: 500;
+}
+.offer-detail i {
+  color: #43a047;
+  font-size: 1.5rem;
+  margin-left: 4px;
+  margin-right: 2px;
+}
+.offer-price {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  margin-bottom: 10px;
+  position: relative;
+  justify-content: space-between;
+}
+.price-amount {
+  font-size: 1.18rem;
+  color: #388e3c;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  direction: ltr;
+  order: 2;
+  margin-left: auto;
+  background: #e8f5e9;
+  border-radius: 8px;
+  padding: 7px 16px;
+  box-shadow: 0 2px 7px #4caf5011;
+}
+.price-amount i.fa-people-group {
+  font-size: 1.3em;
+  color: #d4af37;
+  margin-left: 4px;
+}
+.offer-btn {
+  background: linear-gradient(90deg, #4caf50 80%, #43a047);
+  color: #fff;
+  border: none;
+  padding: 10px 28px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 1.07rem;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 2px;
+  box-shadow: 0 2px 7px #4caf5011;
+  position: static;
+  order: 1;
+  margin-right: 0;
+}
+.offer-btn:hover, .offer-btn:focus {
+  background: #388e3c;
+  color: #fff;
+  transform: translateY(-2px) scale(1.04);
+}
+@media (max-width: 900px) {
+  .offers-container {
+    grid-template-columns: repeat(1, 1fr);
+    gap: 20px;
+    padding: 12px 4px 100px 4px;
+  }
+  .offer-image {
+    height: 160px;
+  }
+  .offer-content {
+    padding: 16px 10px 12px 10px;
+  }
+}
+@media (max-width: 570px) {
+  .offers-container {
+    grid-template-columns: repeat(1, 1fr);
+    gap: 10px;
+    padding: 10px 15px 80px 15px;
+  }
+  .offer-image {
+    height: 110px;
+  }
+  .offer-title {
+    font-size: 1.08rem;
+  }
+  .offer-content {
+    padding: 10px 4px 8px 4px;
+  }
+  .price-amount {
+    font-size: 1.01rem;
+    padding: 5px 8px;
+  }
+  .offer-btn {
+    font-size: 0.97rem;
+    padding: 7px 13px;
+  }
+}
+
+/* Bottom Nav */
+
+
+
+/* Scroll Top */
+.scroll-top {
+  position: fixed;
+  bottom: 90px; right: 21px;
+  width: 53px; height: 53px;
+  background: var(--gold-dark);
+  color: var(--white);
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  box-shadow: 0 4px 20px rgba(212, 175, 55, 0.17);
+  cursor: pointer;
+  transition: var(--transition);
+  z-index: 1100;
+  display: none;
+}
+.scroll-top:hover {
+  background: var(--gold);
+  color: var(--main-green);
+  transform: translateY(-5px) scale(1.08);
+}
