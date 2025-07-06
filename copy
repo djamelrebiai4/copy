@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="description" content="منصة العمرة - خدمات حجز العمرة المتكاملة">
+    <meta name="description" content="منصة العمرة - الوكالات المعتمدة">
     <meta name="theme-color" content="#004d40">
-    <title>منصة العمرة - الصفحة الرئيسية</title>
+    <title>منصة العمرة - الوكالات المعتمدة</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&family=Amiri:wght@700&display=swap" rel="stylesheet">
     <style>
@@ -32,476 +32,637 @@
             overflow-x: hidden;
             touch-action: manipulation;
             padding-bottom: 70px;
+            background-color: var(--light-gray);
         }
 
-        /* Hero Section مع الخلفية */
-        .hero-section {
-            height: 100vh;
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            color: var(--white);
-            padding: 0 20px;
-        }
-
-        .hero-bg {
-            position: absolute;
+        /* خلفية الصفحة */
+        .page-bg {
+            position: fixed;
             top: 0;
             left: 0;
             width: 100%;
-            height: 100%;
-            background-image: url('https://images.unsplash.com/photo-1512053364647-ec919a8d4b4d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80');
+            height: 100vh;
+            background-image: url('https://images.unsplash.com/photo-1566438480900-0609be27a4be?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1494&q=80');
             background-size: cover;
             background-position: center;
             z-index: -2;
-            transition: filter 0.5s ease;
-        }
-
-        .hero-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.4);
-            z-index: -1;
-        }
-
-        .hero-content {
-            max-width: 800px;
-            margin: 0 auto;
-        }
-
-        .hero-title {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
-            font-family: 'Amiri', serif;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-        }
-
-        .hero-subtitle {
-            font-size: 1.2rem;
-            margin-bottom: 2rem;
-            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-        }
-
-        .hero-buttons {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        .hero-btn {
-            padding: 12px 25px;
-            border-radius: 30px;
-            font-weight: bold;
-            font-size: 1rem;
-            border: none;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            text-decoration: none;
-        }
-
-        .gold-btn {
-            background-color: var(--golden);
-            color: var(--islamic-green);
-            box-shadow: 0 4px 10px rgba(212, 175, 55, 0.3);
-        }
-
-        .green-btn {
-            background-color: var(--islamic-green);
-            color: var(--white);
-            box-shadow: 0 4px 10px rgba(0, 77, 64, 0.3);
-        }
-
-        .hero-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
-        }
-
-        /* تأثير التمرير على الخلفية */
-        .scrolled .hero-bg {
             filter: blur(5px);
+            opacity: 0.8;
         }
 
-        /* القسم الرئيسي */
-        .main-content {
-            background-color: var(--light-gray);
+        /* عنوان الصفحة */
+        .page-header {
+            background: linear-gradient(135deg, var(--islamic-green), var(--islamic-green-light));
+            color: var(--white);
+            padding: 80px 20px 30px;
+            text-align: center;
             position: relative;
-            z-index: 1;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
-        /* قسم البطاقات */
-        .card-section {
-            background: var(--white);
-            border-radius: 15px;
-            padding: 20px;
-            margin: 20px 15px;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
-        }
-
-        .section-title {
-            color: var(--islamic-green);
-            margin-bottom: 20px;
-            font-size: 22px;
-            position: relative;
-            padding-bottom: 10px;
-        }
-
-        .section-title::after {
+        .page-header::after {
             content: '';
             position: absolute;
-            bottom: 0;
-            right: 0;
-            width: 50px;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
             height: 3px;
             background: var(--golden);
         }
 
-        /* بطاقات المميزات */
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            margin-top: 20px;
-        }
-
-        .feature-card {
-            background: var(--light-gray);
-            border-radius: 12px;
-            padding: 15px;
-            text-align: center;
-            transition: all 0.3s ease;
-        }
-
-        .feature-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        .feature-icon {
-            font-size: 24px;
-            color: var(--golden);
+        .page-title {
+            font-family: 'Amiri', serif;
+            font-size: 2.2rem;
             margin-bottom: 10px;
         }
 
-        .feature-card h3 {
+        .page-subtitle {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        /* فلترة الوكالات */
+        .search-agencies {
+            background: var(--white);
+            padding: 15px;
+            margin: 0 15px 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 45px 12px 15px;
+            border-radius: 30px;
+            border: 1px solid #ddd;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 15px;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
             color: var(--islamic-green);
-            margin-bottom: 8px;
-            font-size: 16px;
+            font-size: 18px;
         }
 
-        .feature-card p {
-            font-size: 14px;
-            color: var(--text-dark);
+        /* قائمة الوكالات */
+        .agencies-container {
+            padding: 0 15px;
         }
 
-        /* الإحصائيات */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            margin-top: 20px;
-        }
-
-        .stat-card {
+        .agency-card {
             background: var(--white);
             border-radius: 12px;
-            padding: 15px;
-            text-align: center;
-            border-top: 3px solid var(--golden);
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
-        }
-
-        .stat-number {
-            font-size: 24px;
-            font-weight: bold;
-            color: var(--islamic-green);
-            margin-bottom: 5px;
-        }
-
-        .stat-label {
-            font-size: 14px;
-            color: var(--text-dark);
-        }
-
-        /* الأسئلة الشائعة */
-        .faq-item {
-            margin-bottom: 15px;
-            border-radius: 10px;
             overflow: hidden;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
         }
 
-        .faq-question {
-            background: var(--white);
-            padding: 15px;
-            font-weight: 500;
+        .agency-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .agency-header {
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            padding: 15px;
+            background: rgba(0, 77, 64, 0.05);
             cursor: pointer;
         }
 
-        .faq-answer {
-            background: var(--light-gray);
+        .agency-logo {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--golden);
+            margin-left: 15px;
+        }
+
+        .agency-info {
+            flex: 1;
+        }
+
+        .agency-name {
+            font-size: 1.2rem;
+            color: var(--islamic-green);
+            margin-bottom: 5px;
+            font-weight: 700;
+        }
+
+        .agency-location {
+            display: flex;
+            align-items: center;
+            color: var(--text-dark);
+            font-size: 13px;
+        }
+
+        .agency-location i {
+            color: var(--golden);
+            margin-left: 5px;
+        }
+
+        .agency-rating {
+            display: flex;
+            align-items: center;
+            margin-top: 5px;
+        }
+
+        .stars {
+            color: var(--golden);
+            margin-left: 5px;
+        }
+
+        .rating-number {
+            background: var(--golden);
+            color: var(--islamic-green);
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 12px;
+            margin-right: 10px;
+        }
+
+        .toggle-details {
+            background: none;
+            border: none;
+            color: var(--islamic-green);
+            font-size: 20px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .agency-details {
             padding: 0 15px;
             max-height: 0;
             overflow: hidden;
-            transition: max-height 0.3s ease;
+            transition: max-height 0.5s ease, padding 0.5s ease;
         }
 
-        .faq-item.active .faq-answer {
+        .agency-card.active .toggle-details {
+            transform: rotate(180deg);
+        }
+
+        .agency-card.active .agency-details {
             padding: 15px;
-            max-height: 200px;
+            max-height: 500px;
         }
 
-        /* معلومات الاتصال */
-        .contact-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            margin-top: 20px;
-        }
-
-        .contact-card {
-            background: var(--white);
-            border-radius: 12px;
-            padding: 15px;
+        .detail-row {
             display: flex;
-            align-items: center;
-            gap: 10px;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 12px;
         }
 
-        .contact-icon {
-            font-size: 20px;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
+        .detail-label {
+            width: 100px;
+            font-weight: 500;
+            color: var(--islamic-green);
+        }
+
+        .detail-value {
+            flex: 1;
+        }
+
+        .agency-programs {
+            margin-top: 15px;
+        }
+
+        .programs-title {
+            font-weight: 500;
+            color: var(--islamic-green);
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .program-badge {
+            display: inline-block;
+            background: rgba(0, 77, 64, 0.1);
+            color: var(--islamic-green);
+            padding: 5px 10px;
+            border-radius: 20px;
+            margin: 0 5px 5px 0;
+            font-size: 13px;
+        }
+
+        .contact-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .contact-btn {
+            flex: 1;
+            padding: 10px;
+            border-radius: 6px;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: rgba(0, 77, 64, 0.1);
+            gap: 8px;
+        }
+
+        .whatsapp-btn {
+            background: #25D366;
+            color: white;
+        }
+
+        .call-btn {
+            background: var(--islamic-green);
+            color: white;
+        }
+
+        .website-btn {
+            background: var(--golden);
             color: var(--islamic-green);
         }
 
-        .contact-info h3 {
-            font-size: 14px;
-            color: var(--islamic-green);
-            margin-bottom: 5px;
+        .contact-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
 
-        .contact-info p {
-            font-size: 12px;
-            color: var(--text-dark);
+        /* زر العودة للأعلى */
+        .scroll-top {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            width: 45px;
+            height: 45px;
+            background: var(--golden);
+            color: var(--islamic-green);
+            border: none;
+            border-radius: 50%;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            display: none;
+            z-index: 999;
+            transition: all 0.3s ease;
+        }
+
+        .scroll-top:hover {
+            transform: translateY(-3px) scale(1.1);
         }
 
         /* التكيف مع أحجام الشاشات المختلفة */
         @media (max-width: 768px) {
-            .hero-title {
-                font-size: 2rem;
+            .page-header {
+                padding: 70px 15px 25px;
             }
             
-            .hero-subtitle {
-                font-size: 1rem;
+            .page-title {
+                font-size: 1.8rem;
             }
             
-            .hero-buttons {
+            .search-agencies {
+                padding: 12px;
+            }
+            
+            .search-input {
+                padding: 10px 40px 10px 12px;
+                font-size: 14px;
+            }
+            
+            .search-icon {
+                left: 15px;
+                font-size: 16px;
+            }
+            
+            .agency-header {
+                padding: 12px;
+            }
+            
+            .agency-logo {
+                width: 50px;
+                height: 50px;
+                margin-left: 10px;
+            }
+            
+            .agency-name {
+                font-size: 1.1rem;
+            }
+            
+            .contact-buttons {
                 flex-direction: column;
-                width: 100%;
-            }
-            
-            .hero-btn {
-                width: 100%;
-                justify-content: center;
             }
         }
 
         @media (max-width: 480px) {
-            .features-grid,
-            .stats-grid,
-            .contact-grid {
-                grid-template-columns: 1fr;
+            .page-title {
+                font-size: 1.6rem;
             }
             
-            .section-title {
-                font-size: 20px;
+            .detail-row {
+                flex-direction: column;
+                margin-bottom: 10px;
+            }
+            
+            .detail-label {
+                width: 100%;
+                margin-bottom: 3px;
             }
         }
     </style>
 </head>
 <body>
+    <!-- خلفية الصفحة -->
+    <div class="page-bg"></div>
+
     <!-- يتم استدعاء الشريط العلوي من ملف خارجي -->
     <div id="header-placeholder"></div>
 
-    <!-- Hero Section -->
-    <section class="hero-section" id="heroSection">
-        <div class="hero-bg" id="heroBg"></div>
-        <div class="hero-overlay"></div>
-        
-        <div class="hero-content">
-            <h1 class="hero-title">منصة العمرة</h1>
-            <p class="hero-subtitle">حجوزات العمرة المميزة بكل يسر وسهولة</p>
+    <!-- عنوان الصفحة -->
+    <header class="page-header">
+        <h1 class="page-title">الوكالات المعتمدة</h1>
+        <p class="page-subtitle">شركاؤنا المعتمدون في خدمة المعتمرين</p>
+    </header>
+
+    <!-- بحث الوكالات -->
+    <section class="search-agencies">
+        <input type="text" class="search-input" placeholder="ابحث عن وكالة..." id="agencySearch">
+        <i class="fas fa-search search-icon"></i>
+    </section>
+
+    <!-- قائمة الوكالات -->
+    <section class="agencies-container">
+        <!-- وكالة 1 -->
+        <div class="agency-card" id="agency1">
+            <div class="agency-header" onclick="toggleAgencyDetails('agency1')">
+                <img src="https://via.placeholder.com/150" alt="لوغو الوكالة" class="agency-logo">
+                <div class="agency-info">
+                    <h3 class="agency-name">الراجحي للعمرة</h3>
+                    <div class="agency-location">
+                        <i class="fas fa-map-marker-alt"></i>
+                        الرياض، مكة، المدينة
+                    </div>
+                    <div class="agency-rating">
+                        <span class="rating-number">4.8</span>
+                        <div class="stars">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star-half-alt"></i>
+                        </div>
+                    </div>
+                </div>
+                <button class="toggle-details">
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+            </div>
             
-            <div class="hero-buttons">
-                <a href="#" class="hero-btn gold-btn">
-                    <i class="fas fa-gem"></i>
-                    العروض الذهبية
-                </a>
-                <a href="#" class="hero-btn green-btn">
-                    <i class="fas fa-kaaba"></i>
-                    تصفح الرحلات
-                </a>
+            <div class="agency-details">
+                <div class="detail-row">
+                    <span class="detail-label">سنوات الخبرة:</span>
+                    <span class="detail-value">15 سنة</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">رقم الترخيص:</span>
+                    <span class="detail-value">XYZ123456</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">اللغات:</span>
+                    <span class="detail-value">العربية، الإنجليزية، الأوردو</span>
+                </div>
+                
+                <div class="agency-programs">
+                    <h4 class="programs-title">برامج العمرة المتاحة:</h4>
+                    <span class="program-badge">عمرة اقتصادية</span>
+                    <span class="program-badge">عمرة رمضان</span>
+                    <span class="program-badge">عمرة العائلة</span>
+                    <span class="program-badge">عمرة VIP</span>
+                </div>
+                
+                <div class="contact-buttons">
+                    <button class="contact-btn whatsapp-btn">
+                        <i class="fab fa-whatsapp"></i>
+                        واتساب
+                    </button>
+                    <button class="contact-btn call-btn">
+                        <i class="fas fa-phone-alt"></i>
+                        اتصل بنا
+                    </button>
+                    <button class="contact-btn website-btn">
+                        <i class="fas fa-globe"></i>
+                        الموقع
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- وكالة 2 -->
+        <div class="agency-card" id="agency2">
+            <div class="agency-header" onclick="toggleAgencyDetails('agency2')">
+                <img src="https://via.placeholder.com/150" alt="لوغو الوكالة" class="agency-logo">
+                <div class="agency-info">
+                    <h3 class="agency-name">الهدى للحج والعمرة</h3>
+                    <div class="agency-location">
+                        <i class="fas fa-map-marker-alt"></i>
+                        جدة، مكة
+                    </div>
+                    <div class="agency-rating">
+                        <span class="rating-number">4.6</span>
+                        <div class="stars">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="far fa-star"></i>
+                        </div>
+                    </div>
+                </div>
+                <button class="toggle-details">
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+            </div>
+            
+            <div class="agency-details">
+                <div class="detail-row">
+                    <span class="detail-label">سنوات الخبرة:</span>
+                    <span class="detail-value">10 سنوات</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">رقم الترخيص:</span>
+                    <span class="detail-value">ABC789012</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">اللغات:</span>
+                    <span class="detail-value">العربية، الإنجليزية</span>
+                </div>
+                
+                <div class="agency-programs">
+                    <h4 class="programs-title">برامج العمرة المتاحة:</h4>
+                    <span class="program-badge">عمرة اقتصادية</span>
+                    <span class="program-badge">عمرة نهاية الأسبوع</span>
+                    <span class="program-badge">عمرة الشباب</span>
+                </div>
+                
+                <div class="contact-buttons">
+                    <button class="contact-btn whatsapp-btn">
+                        <i class="fab fa-whatsapp"></i>
+                        واتساب
+                    </button>
+                    <button class="contact-btn call-btn">
+                        <i class="fas fa-phone-alt"></i>
+                        اتصل بنا
+                    </button>
+                    <button class="contact-btn website-btn">
+                        <i class="fas fa-globe"></i>
+                        الموقع
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- وكالة 3 -->
+        <div class="agency-card" id="agency3">
+            <div class="agency-header" onclick="toggleAgencyDetails('agency3')">
+                <img src="https://via.placeholder.com/150" alt="لوغو الوكالة" class="agency-logo">
+                <div class="agency-info">
+                    <h3 class="agency-name">الرحمة للخدمات الدينية</h3>
+                    <div class="agency-location">
+                        <i class="fas fa-map-marker-alt"></i>
+                        الرياض، الدمام، المدينة
+                    </div>
+                    <div class="agency-rating">
+                        <span class="rating-number">4.9</span>
+                        <div class="stars">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                    </div>
+                </div>
+                <button class="toggle-details">
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+            </div>
+            
+            <div class="agency-details">
+                <div class="detail-row">
+                    <span class="detail-label">سنوات الخبرة:</span>
+                    <span class="detail-value">20 سنة</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">رقم الترخيص:</span>
+                    <span class="detail-value">DEF345678</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">اللغات:</span>
+                    <span class="detail-value">العربية، الإنجليزية، الفرنسية</span>
+                </div>
+                
+                <div class="agency-programs">
+                    <h4 class="programs-title">برامج العمرة المتاحة:</h4>
+                    <span class="program-badge">عمرة فاخرة</span>
+                    <span class="program-badge">عمرة العائلة</span>
+                    <span class="program-badge">عمرة رمضان</span>
+                    <span class="program-badge">عمرة VIP</span>
+                </div>
+                
+                <div class="contact-buttons">
+                    <button class="contact-btn whatsapp-btn">
+                        <i class="fab fa-whatsapp"></i>
+                        واتساب
+                    </button>
+                    <button class="contact-btn call-btn">
+                        <i class="fas fa-phone-alt"></i>
+                        اتصل بنا
+                    </button>
+                    <button class="contact-btn website-btn">
+                        <i class="fas fa-globe"></i>
+                        الموقع
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- وكالة 4 -->
+        <div class="agency-card" id="agency4">
+            <div class="agency-header" onclick="toggleAgencyDetails('agency4')">
+                <img src="https://via.placeholder.com/150" alt="لوغو الوكالة" class="agency-logo">
+                <div class="agency-info">
+                    <h3 class="agency-name">البيت المعمور</h3>
+                    <div class="agency-location">
+                        <i class="fas fa-map-marker-alt"></i>
+                        مكة، جدة
+                    </div>
+                    <div class="agency-rating">
+                        <span class="rating-number">4.5</span>
+                        <div class="stars">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="far fa-star"></i>
+                        </div>
+                    </div>
+                </div>
+                <button class="toggle-details">
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+            </div>
+            
+            <div class="agency-details">
+                <div class="detail-row">
+                    <span class="detail-label">سنوات الخبرة:</span>
+                    <span class="detail-value">12 سنة</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">رقم الترخيص:</span>
+                    <span class="detail-value">GHI901234</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">اللغات:</span>
+                    <span class="detail-value">العربية، الإنجليزية، التركية</span>
+                </div>
+                
+                <div class="agency-programs">
+                    <h4 class="programs-title">برامج العمرة المتاحة:</h4>
+                    <span class="program-badge">عمرة اقتصادية</span>
+                    <span class="program-badge">عمرة العائلة</span>
+                    <span class="program-badge">عمرة مع دليل سياحي</span>
+                </div>
+                
+                <div class="contact-buttons">
+                    <button class="contact-btn whatsapp-btn">
+                        <i class="fab fa-whatsapp"></i>
+                        واتساب
+                    </button>
+                    <button class="contact-btn call-btn">
+                        <i class="fas fa-phone-alt"></i>
+                        اتصل بنا
+                    </button>
+                    <button class="contact-btn website-btn">
+                        <i class="fas fa-globe"></i>
+                        الموقع
+                    </button>
+                </div>
             </div>
         </div>
     </section>
 
-    <!-- المحتوى الرئيسي -->
-    <div class="main-content" id="mainContent">
-        <!-- قسم المميزات -->
-        <section class="card-section">
-            <h2 class="section-title">مميزات المنصة</h2>
-            <div class="features-grid">
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-mosque"></i>
-                    </div>
-                    <h3>حجز سهل وآمن</h3>
-                    <p>احجز رحلة عمرتك بخطوات بسيطة وآمنة</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-hand-holding-heart"></i>
-                    </div>
-                    <h3>خدمة متميزة</h3>
-                    <p>دعم متواصل على مدار الساعة</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-star"></i>
-                    </div>
-                    <h3>عروض حصرية</h3>
-                    <p>باقات متنوعة تناسب جميع الميزانيات</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-shield-alt"></i>
-                    </div>
-                    <h3>ضمان الجودة</h3>
-                    <p>نضمن لك أفضل تجربة مع شركائنا</p>
-                </div>
-            </div>
-        </section>
-
-        <!-- الإحصائيات -->
-        <section class="card-section">
-            <h2 class="section-title">أرقامنا تتحدث</h2>
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-number">10,000+</div>
-                    <div class="stat-label">معتمر سعيد</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number">100+</div>
-                    <div class="stat-label">وكالة معتمدة</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number">50+</div>
-                    <div class="stat-label">برنامج عمرة</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number">24/7</div>
-                    <div class="stat-label">دعم متواصل</div>
-                </div>
-            </div>
-        </section>
-
-        <!-- الأسئلة الشائعة -->
-        <section class="card-section">
-            <h2 class="section-title">الأسئلة الشائعة</h2>
-            <div class="faq-item">
-                <div class="faq-question">
-                    كيف يمكنني حجز رحلة عمرة؟
-                    <i class="fas fa-chevron-down"></i>
-                </div>
-                <div class="faq-answer">
-                    يمكنك حجز رحلة العمرة بسهولة من خلال موقعنا. اختر الباقة المناسبة، أدخل بياناتك، واختر طريقة الدفع المناسبة.
-                </div>
-            </div>
-            <div class="faq-item">
-                <div class="faq-question">
-                    هل يمكنني تعديل أو إلغاء الحجز؟
-                    <i class="fas fa-chevron-down"></i>
-                </div>
-                <div class="faq-answer">
-                    نعم، يمكنك تعديل أو إلغاء الحجز وفقًا لسياسة الإلغاء الخاصة بالمنصة.
-                </div>
-            </div>
-            <div class="faq-item">
-                <div class="faq-question">
-                    ما هي طرق الدفع المتاحة؟
-                    <i class="fas fa-chevron-down"></i>
-                </div>
-                <div class="faq-answer">
-                    نوفر عدة طرق دفع آمنة تشمل البطاقات البنكية، التحويل البنكي، والدفع الإلكتروني.
-                </div>
-            </div>
-        </section>
-
-        <!-- معلومات الاتصال -->
-        <section class="card-section">
-            <h2 class="section-title">تواصل معنا</h2>
-            <div class="contact-grid">
-                <div class="contact-card">
-                    <div class="contact-icon">
-                        <i class="fas fa-phone-alt"></i>
-                    </div>
-                    <div class="contact-info">
-                        <h3>رقم الهاتف</h3>
-                        <p>+966 50 000 0000</p>
-                    </div>
-                </div>
-                <div class="contact-card">
-                    <div class="contact-icon">
-                        <i class="fab fa-whatsapp"></i>
-                    </div>
-                    <div class="contact-info">
-                        <h3>واتساب</h3>
-                        <p>+966 50 000 0000</p>
-                    </div>
-                </div>
-                <div class="contact-card">
-                    <div class="contact-icon">
-                        <i class="fas fa-envelope"></i>
-                    </div>
-                    <div class="contact-info">
-                        <h3>البريد الإلكتروني</h3>
-                        <p>info@umrah.com</p>
-                    </div>
-                </div>
-                <div class="contact-card">
-                    <div class="contact-icon">
-                        <i class="fab fa-twitter"></i>
-                    </div>
-                    <div class="contact-info">
-                        <h3>تويتر</h3>
-                        <p>@umrahplatform</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </div>
-
     <!-- يتم استدعاء الشريط السفلي من ملف خارجي -->
     <div id="bottom-nav-placeholder"></div>
+
+    <!-- زر العودة للأعلى -->
+    <button class="scroll-top" onclick="scrollToTop()">
+        <i class="fas fa-arrow-up"></i>
+    </button>
 
     <script>
         // استدعاء الشريط العلوي والسفلي من ملفات خارجية
@@ -528,6 +689,10 @@
         function activateBottomNav() {
             const navItems = document.querySelectorAll('.bottom-nav .nav-item');
             navItems.forEach(item => {
+                if (item.querySelector('i').classList.contains('fa-building')) {
+                    item.classList.add('active');
+                }
+                
                 item.addEventListener('click', function() {
                     navItems.forEach(i => i.classList.remove('active'));
                     this.classList.add('active');
@@ -535,40 +700,47 @@
             });
         }
 
-        // تأثير التمرير على الخلفية
-        window.addEventListener('scroll', function() {
-            const heroSection = document.getElementById('heroSection');
-            const scrollPosition = window.scrollY;
+        // تبديل تفاصيل الوكالة
+        function toggleAgencyDetails(agencyId) {
+            const agencyCard = document.getElementById(agencyId);
+            agencyCard.classList.toggle('active');
+        }
+
+        // بحث الوكالات
+        document.getElementById('agencySearch').addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const agencies = document.querySelectorAll('.agency-card');
             
-            if (scrollPosition > 50) {
-                heroSection.classList.add('scrolled');
+            agencies.forEach(agency => {
+                const agencyName = agency.querySelector('.agency-name').textContent.toLowerCase();
+                if (agencyName.includes(searchTerm)) {
+                    agency.style.display = 'block';
+                } else {
+                    agency.style.display = 'none';
+                }
+            });
+        });
+
+        // زر العودة للأعلى
+        window.addEventListener('scroll', function() {
+            const scrollTopBtn = document.querySelector('.scroll-top');
+            if (window.scrollY > 300) {
+                scrollTopBtn.style.display = 'flex';
             } else {
-                heroSection.classList.remove('scrolled');
+                scrollTopBtn.style.display = 'none';
             }
         });
 
-        // تفعيل الأسئلة الشائعة
+        function scrollToTop() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+
+        // تحميل المكونات عند بدء الصفحة
         document.addEventListener('DOMContentLoaded', function() {
             loadComponents();
-            
-            document.querySelectorAll('.faq-question').forEach(question => {
-                question.addEventListener('click', () => {
-                    const item = question.parentElement;
-                    item.classList.toggle('active');
-                    
-                    // إغلاق البقية
-                    document.querySelectorAll('.faq-item').forEach(otherItem => {
-                        if (otherItem !== item) {
-                            otherItem.classList.remove('active');
-                        }
-                    });
-                });
-            });
-
-            // منع التكبير بالضغط المزدوج
-            document.addEventListener('dblclick', function(e) {
-                e.preventDefault();
-            }, { passive: false });
         });
     </script>
 </body>
