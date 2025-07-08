@@ -1,246 +1,502 @@
-// دالة لجلب العروض من API
-let allOffers = [];
-let agencySet = new Set();
-let airportSet = new Set();
-async function fetchAndDisplayOffers(filteredOffers = null) {
-    // تشخيص: طباعة بيانات العروض في الكونسول
-    console.log('allOffers (قبل):', allOffers, 'filteredOffers:', filteredOffers);
-    // إذا كان filteredOffers حدث (Event) تجاهله
-    if (filteredOffers && typeof filteredOffers === 'object' && filteredOffers instanceof Event) {
-        filteredOffers = null;
-    }
-    const offersContainer = document.querySelector('.offers-container');
-    offersContainer.innerHTML = '<div style="grid-column: 1/-1; text-align:center;">جاري التحميل...</div>';
-    try {
-        let offers = filteredOffers;
-        if (!offers) {
-            const response = await fetch('http://192.168.0.114:3001/api/user/offers');
-            let apiResult = await response.json();
-            // دعم الاستجابة كمصفوفة أو كائن فيه data
-            offers = Array.isArray(apiResult) ? apiResult : apiResult.data || [];
-            allOffers = offers;
-            // جلب الوكالات من API منفصل
-            fetchAgenciesAndAirports(offers);
-        }
-        // لعرض جميع العروض دائماً عند أول تحميل (بدون أي فلترة)
-        if (!filteredOffers) {
-            offers = allOffers;
-        }
-// جلب الوكالات والمطارات من API وتعبئة القوائم
-async function fetchAgenciesAndAirports(offers) {
-    // جلب الوكالات والمطارات من API موحد
-    try {
-        const res = await fetch('http://localhost:3001/api/user/with-offers-and-airports');
-        const data = await res.json();
-        agencySet = new Set();
-        airportSet = new Set();
-        if (data && data.status === 'ok' && Array.isArray(data.agencies)) {
-            // حفظ الوكالات والمطارات في متغير عام لاستخدامه في الفلترة
-            window.lastAgenciesWithAirports = data.agencies;
-            data.agencies.forEach(agency => {
-                if (agency.name) agencySet.add(agency.name);
-                // المطارات الخاصة بالوكالة (من agency.airports)
-                if (Array.isArray(agency.airports)) {
-                    agency.airports.forEach(ap => {
-                        if (ap && ap.name) airportSet.add(ap.name);
-                    });
-                }
-            });
-        }
-        airportSet.delete(undefined); airportSet.delete(null); airportSet.delete("");
-        updateAgencyAndAirportLists();
-    } catch (e) {
-        // fallback: من بيانات العروض فقط
-        agencySet = new Set();
-        airportSet = new Set();
-        offers.forEach(offer => {
-            if (offer.agencies && offer.agencies.name) agencySet.add(offer.agencies.name);
-            if (offer.departure_airport) airportSet.add(offer.departure_airport);
-            else if (offer.airport) airportSet.add(offer.airport);
-        });
-        airportSet.delete(undefined); airportSet.delete(null); airportSet.delete("");
-        updateAgencyAndAirportLists();
-    }
-}
-        if (!Array.isArray(offers) || offers.length === 0) {
-            offersContainer.innerHTML = '<div style="grid-column: 1/-1; text-align:center;">لا توجد عروض متاحة حالياً</div>';
-            return;
-        }
-        // تحديد أقل سعر quint متوفر
-        let minPrice = Infinity;
-        let bestOfferId = null;
-        offers.forEach(offer => {
-            if (Number(offer.price_quint) && Number(offer.price_quint) < minPrice) {
-                minPrice = Number(offer.price_quint);
-                bestOfferId = offer.id;
-            }
-        });
-        offersContainer.innerHTML = offers.map(offer => {
-            // الخدمات (services) كأيقونات مع اسم الخدمة أسفل كل أيقونة
-            let servicesHtml = '';
-            if (offer.services && typeof offer.services === 'object') {
-                servicesHtml = Object.keys(offer.services).filter(key => offer.services[key]).map(key => {
-                    let icon = '', label = '';
-                    if (key === 'visa') {
-                        icon = '<i class="fas fa-passport" title="تأشيرة"></i>';
-                        label = 'تأشيرة';
-                    } else if (key === 'meals') {
-                        icon = '<i class="fas fa-utensils" title="وجبات"></i>';
-                        label = 'وجبات';
-                    } else if (key === 'transport') {
-                        icon = '<i class="fas fa-bus" title="نقل"></i>';
-                        label = 'نقل';
-                    } else {
-                        icon = '<i class="fas fa-check-circle"></i>';
-                        label = key;
-                    }
-                    return `<span class="offer-detail service-icon-with-label">${icon}<span class="service-label">${label}</span></span>`;
-                }).join(' ');
-            }
-            // اسم الوكالة الحقيقي
-            let agencyName = offer.agencies && offer.agencies.name ? offer.agencies.name : '';
-            // صورة العرض واسمها
-            let mainImage = offer.main_image || (offer.hotel_images && offer.hotel_images[0]) || '';
-            let imageName = mainImage ? mainImage.split('/').pop() : '';
-            // الموقع (entry/exit) كأيقونات مع اسم المدينة
-            let locationHtml = '';
-            if (offer.entry && offer.exit) {
-                locationHtml = `
-                  <span class="offer-location"><i class="fas fa-sign-in-alt" title="دخول"></i> ${offer.entry}</span>
-                  <span class="offer-location"><i class="fas fa-sign-out-alt" title="خروج"></i> ${offer.exit}</span>
-                `;
-            } else if (offer.entry) {
-                locationHtml = `<span class="offer-location"><i class="fas fa-sign-in-alt" title="دخول"></i> ${offer.entry}</span>`;
-            } else if (offer.exit) {
-                locationHtml = `<span class="offer-location"><i class="fas fa-sign-out-alt" title="خروج"></i> ${offer.exit}</span>`;
-            }
-            // شارة أفضل عرض (تاج فقط)
-            let bestBadge = (offer.id === bestOfferId) ? `<div class="offer-badge best-offer"><i class='fas fa-crown'></i></div>` : '';
-            return `
-            <div class="offer-card" style="max-width: 400px;">
-                ${bestBadge}
-                <img src="${mainImage}" alt="${offer.title || ''}" class="offer-image">
-                <div class="offer-content">
-                    
-                    <h3 class="offer-title">${offer.title || ''}</h3>
-                    <div class="offer-agency-location-row" style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
-                        <div class="offer-agency"><i class="fas fa-building"></i> ${agencyName}</div>
-                        <div class="offer-location-group" style="display:flex; gap:7px; align-items:center;">${locationHtml}</div>
-                    </div>
-                    <div class="offer-details">
-                        ${servicesHtml}
-                    </div>
-                    <div class="offer-price">
-                      <button class="offer-btn" style="order:1; margin-left:0px;" onclick="window.location.href='offer-details.html?id=${offer.id}'"><i class="fas fa-eye"></i> تفاصيل</button>
-                      <span class="price-amount" style="display: flex; flex-direction: column; align-items: flex-end; order:2; margin-right: 0px;">
-                          <span style="display: inline-block; text-align: center; line-height: 1; margin-bottom: 0px;">
-                            <span style="display: flex; justify-content: center; gap: 3px;">
-                              <i class="fas fa-user" style="color:#d4af37;"></i>
-                              <i class="fas fa-user" style="color:#d4af37;"></i>
-                              <i class="fas fa-user" style="color:#d4af37;"></i>
-                            </span>
-                            <span style="display: flex; justify-content: center; gap: 3px; margin-top: 3px;">
-                              <i class="fas fa-user" style="color:#d4af37;"></i>
-                              <i class="fas fa-user" style="color:#d4af37;"></i>
-                            </span>
-                          </span>
-                          <span style="font-weight: bold; color: #004d40; font-size: 1.05rem;">
-                            ${Number(offer.price_quint) ? offer.price_quint + ' DA' : '<span style="color:#bfa338;font-size:0.98em">غير متوفر</span>'}
-                          </span>
-                      </span>
-                    </div>
-                </div>
-            </div>
-            `;
-        }).join('');
-    } catch (err) {
-        offersContainer.innerHTML = '<div style="grid-column: 1/-1; text-align:center; color:red;">حدث خطأ أثناء جلب العروض</div>';
-    }
+:root {
+  --main-green: #186049;
+  --second-green: #23a084;
+  --gold: #f4d078;
+  --gold-dark: #bfa338;
+  --white: #fff;
+  --light: #f8f9fa;
+  --shadow: 0 4px 20px 0 rgba(30, 41, 59, 0.09);
+  --radius: 16px;
+  --transition: all 0.3s cubic-bezier(.4,1,.7,1);
+  --main-font: 'Tajawal', 'Amiri', Arial, sans-serif;
 }
 
-
-// تفعيل فلترة العروض
-function applyFilters() {
-    let filtered = [...allOffers];
-    // فلترة باسم الوكالة
-    const agencyName = document.getElementById('agencyName').value;
-    if (agencyName) {
-        filtered = filtered.filter(offer => {
-            const name = offer.agencies && offer.agencies.name ? offer.agencies.name : '';
-            return name === agencyName;
-        });
-    }
-    // فلترة مطار الإقلاع (فلترة الوكالات أولاً ثم العروض)
-    const airport = document.getElementById('airport').value;
-    if (airport && window.lastAgenciesWithAirports) {
-        // احصل على قائمة الوكالات التي تحتوي على هذا المطار
-        const allowedAgencyIds = window.lastAgenciesWithAirports
-            .filter(agency => Array.isArray(agency.airports) && agency.airports.some(ap => ap && ap.name === airport))
-            .map(agency => agency.id);
-        filtered = filtered.filter(offer => allowedAgencyIds.includes(offer.agency_id));
-    }
-    // ترتيب السعر
-    const priceOrder = document.getElementById('priceOrder').value;
-    if (priceOrder === 'asc') {
-        filtered = filtered.sort((a, b) => Number(a.price_quint) - Number(b.price_quint));
-    } else if (priceOrder === 'desc') {
-        filtered = filtered.sort((a, b) => Number(b.price_quint) - Number(a.price_quint));
-    }
-    fetchAndDisplayOffers(filtered);
+html, body {
+  font-family: var(--main-font);
+  background: var(--light);
+  color: #222;
+  min-height: 100vh;
+  direction: rtl;
 }
 
-// تحديث قوائم الوكالات والمطارات
-function updateAgencyAndAirportLists() {
-    const agencySelect = document.getElementById('agencyName');
-    const airportSelect = document.getElementById('airport');
-    if (agencySelect) {
-        // احفظ القيمة المختارة
-        const selected = agencySelect.value;
-        agencySelect.innerHTML = '<option value="">كل الوكالات</option>' +
-            Array.from(agencySet).map(name => `<option value="${name}">${name}</option>`).join('');
-        if (selected) agencySelect.value = selected;
-    }
-    if (airportSelect) {
-        const selected = airportSelect.value;
-        airportSelect.innerHTML = '<option value="">كل المطارات</option>' +
-            Array.from(airportSet).map(name => `<option value="${name}">${name}</option>`).join('');
-        if (selected) airportSelect.value = selected;
-    }
+.page-bg {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(130deg, #e0f2f1 0%, #f8f9fa 100%);
+  background-image: url('https://images.unsplash.com/photo-1512053364647-ec919a8d4b4d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80');
+  background-size: cover;
+  background-position: center;
+  z-index: -2;
+  filter: blur(10px) brightness(0.94);
+  opacity: 0.75;
 }
 
-// زر الأقرب للحرم
-const nearestBtn = document.getElementById('nearestHaramBtn');
-if (nearestBtn) {
-    nearestBtn.addEventListener('click', function() {
-        let filtered = [...allOffers];
-        filtered = filtered.filter(o => o.hotel_distance !== undefined && o.hotel_distance !== null);
-        filtered = filtered.sort((a, b) => Number(a.hotel_distance) - Number(b.hotel_distance));
-        fetchAndDisplayOffers(filtered);
-    });
+.page-header {
+  background: linear-gradient(120deg, var(--main-green), var(--second-green));
+  color: var(--white);
+  text-align: center;
+  padding: 90px 20px 40px 20px;
+  position: relative;
+  margin-bottom: 32px;
+  box-shadow: var(--shadow);
+  margin-top: 70px;
+  border-radius: 0 0 var(--radius) var(--radius);
+}
+.page-header::after {
+  content: '';
+  display: block;
+  width: 65px;
+  height: 4px;
+  background: var(--gold);
+  margin: 18px auto 0;
+  border-radius: 2px;
+}
+.page-title {
+  font-family: 'Amiri', serif;
+  font-size: 2.4rem;
+  letter-spacing: -1px;
+  margin-bottom: 8px;
+  font-weight: 700;
+}
+.page-subtitle {
+  font-size: 1.04rem;
+  opacity: 0.95;
 }
 
-// زر تصفية العروض (زر يدوي فقط)
-const filterBtn = document.getElementById('applyFilters');
-if (filterBtn) {
-    filterBtn.addEventListener('click', applyFilters);
+.filters-section {
+  background: var(--white);
+  box-shadow: var(--shadow);
+  border-radius: var(--radius);
+  margin: 0 16px 28px 16px;
+  padding: 15px 18px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px 22px;
+  align-items: flex-end;
+  justify-content: space-between;
+  position: relative;
 }
 
-// تفعيل الفلترة الآنية عند تغيير أي فلتر
-function enableInstantFilters() {
-    const agencySelect = document.getElementById('agencyName');
-    const airportSelect = document.getElementById('airport');
-    const priceOrder = document.getElementById('priceOrder');
-    if (agencySelect) agencySelect.addEventListener('change', applyFilters);
-    if (airportSelect) airportSelect.addEventListener('change', applyFilters);
-    if (priceOrder) priceOrder.addEventListener('change', applyFilters);
+.filter-group {
+  flex: 1 1 145px;
+  min-width: 130px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.filter-label {
+  font-weight: 500;
+  color: var(--main-green);
+  margin-bottom: 4px;
+  font-size: 15px;
+}
+.filter-select {
+  border: 1.5px solid #e0e0e0;
+  border-radius: 7px;
+  font-size: 15.5px;
+  padding: 9px 13px;
+  font-family: var(--main-font);
+  background: var(--light);
+  transition: border .2s;
+}
+.filter-select:focus {
+  border-color: var(--main-green);
+  outline: none;
+}
+.filter-btn {
+  background: var(--gold);
+  color: var(--main-green);
+  border: none;
+  border-radius: 8px;
+  padding: 13px 28px;
+  font-weight: bold;
+  font-size: 1rem;
+  cursor: pointer;
+  box-shadow: 0 2px 7px rgba(212, 175, 55, 0.08);
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.filter-btn:hover, .filter-btn:focus {
+  background: var(--gold-dark);
+  color: var(--white);
+  transform: translateY(-2px) scale(1.03);
+  outline: none;
 }
 
-// تفعيل الفلترة الآنية بعد تحديث القوائم
-const origUpdateAgencyAndAirportLists = updateAgencyAndAirportLists;
-updateAgencyAndAirportLists = function() {
-    origUpdateAgencyAndAirportLists();
-    enableInstantFilters();
-};
+/* Cards */
+.offers-container {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(300px, 1fr));
+  gap: 0 44px;
+  padding: 48px 24px 120px 24px;
+  align-items: stretch;
+  background: #f5f7fa;
+  border-radius: 22px;
+  box-shadow: 0 8px 36px 0 rgba(30, 41, 59, 0.10);
+}
+.offer-card {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px 0 rgba(76,175,80,0.10), 0 16px 32px -8px #4caf5022;
+  overflow: hidden;
+  transition: box-shadow 0.3s, transform 0.25s, border-color 0.25s;
+  display: flex;
+  flex-direction: column;
+  height:auto;
+  position: relative;
+  border: 2px solid #e0e0e0;
+  margin-bottom: 25px;
+  margin: 0px 0px 30px 0px;
+}
+.offer-card:hover {
+  transform: translateY(-8px) scale(1.025);
+  box-shadow: 0 18px 48px 0 #43a04733, 0 24px 48px -8px #4caf5044;
+  border-color: #43a047;
+}
+.offer-badge {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  background: var(--gold-color, #d4af37);
+  color: #fff;
+  padding: 6px 15px;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 13px;
+  z-index: 2;
+  box-shadow: 0 2px 7px rgba(212, 175, 55, 0.11);
+  letter-spacing: 0.2px;
+}
+.offer-badge.best-offer {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  left: auto;
+  background: linear-gradient(90deg, #ffd700 60%, #fffbe6 100%);
+  color: #388e3c;
+  padding: 7px 22px;
+  border-radius: 22px;
+  font-weight: 900;
+  font-size: 1.08rem;
+  z-index: 3;
+  box-shadow: 0 2px 12px #ffd70033;
+  letter-spacing: 0.3px;
+  border: 2px solid #388e3c;
+  text-shadow: 0 1px 0 #fffbe6;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.offer-badge.best-offer i {
+  color: #388e3c;
+  font-size: 1.2em;
+}
+.offer-image {
+  width: 100%;
+  height: 210px;
+  object-fit: cover;
+  border-bottom: 2px solid #e0e0e0;
+  background: #f9f9f9;
+  transition: filter 0.35s, box-shadow 0.3s;
+  filter: brightness(1.06) contrast(1.08);
+  box-shadow: 0 4px 18px 0 #4caf5011;
+}
+.offer-card:hover .offer-image {
+  filter: brightness(1.10) contrast(1.13);
+  box-shadow: 0 8px 32px 0 #43a04722;
+}
+.offer-content {
+  padding: 20px 18px 18px 18px;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  justify-content: space-between;
+}
+.offer-agency {
+  display: flex;
+  align-items: center;
+  font-size: 1.13rem;
+  color: #388e3c;
+  font-weight: 700;
+  margin-bottom: 8px;
+  gap: 7px;
+  letter-spacing: 0.2px;
+}
+.offer-agency-location-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.offer-location-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-end;
+}
+.offer-location {
+  background: #e8f5e9;
+  color: #388e3c;
+  border-radius: 7px;
+  padding: 4px 10px 4px 8px;
+  font-size: 1.01rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 0;
+}
+.offer-location i {
+  color: #43a047;
+  font-size: 1.2em;
+  margin-left: 3px;
+}
+.offer-title {
+  font-size: 1.35rem;
+  color: #186049;
+  font-weight: bold;
+  margin-bottom: 12px;
+  letter-spacing: -0.5px;
+  text-shadow: 0 1px 0 #d4af371a;
+  line-height: 1.3;
+  text-align: right;
+}
+.offer-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  margin-bottom: 12px;
+  align-items: flex-end;
+  justify-content: flex-start;
+}
+.offer-detail {
+  display: flex;
+  align-items: center;
+  font-size: 1.08rem;
+  color: #388e3c;
+  gap: 7px;
+  background: #e8f5e9;
+  border-radius: 7px;
+  padding: 4px 10px 4px 8px;
+  font-weight: 500;
+}
+.offer-price {
+  display: flex;
+  flex-direction: row-reverse;
+  gap: 18px;
+  align-items: center;
+  margin-bottom: 10px;
+  position: relative;
+  justify-content: space-between;
+}
+.price-amount {
+  font-size: 1.18rem;
+  color: #388e3c;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  direction: ltr;
+  order: 2;
+  margin-left: auto;
+  background: #e8f5e9;
+  border-radius: 8px;
+  padding: 7px 16px;
+  box-shadow: 0 2px 7px #4caf5011;
+  flex-direction: column;
+  align-items: flex-end;
+}
+.price-amount i.fa-people-group {
+  font-size: 1.3em;
+  color: #d4af37;
+  margin-left: 4px;
+}
+.offer-btn {
+  background: linear-gradient(90deg, #4caf50 80%, #43a047);
+  color: #fff;
+  border: none;
+  padding: 10px 28px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 1.07rem;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 2px;
+  box-shadow: 0 2px 7px #4caf5011;
+  position: static;
+  order: 1;
+  margin-right: 0;
+}
+.offer-card .offer-content > * {
+  margin-bottom: 0.5em;
+}
+.offer-card .offer-content > *:last-child {
+  margin-bottom: 0;
+}
+.service-icon-with-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0 10px 0 0;
+  min-width: 60px;
+}
+.service-icon-with-label i {
+  font-size: 1.7em;
+  color: #23a084;
+  margin-bottom: 3px;
+}
+.service-label {
+  font-size: 1em;
+  color: #186049;
+  font-weight: 500;
+  margin-top: 2px;
+  letter-spacing: 0.1px;
+}
+@media (max-width: 900px) {
+  .offers-container {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    padding: 12px 4px 100px 4px;
+  }
+  .offer-image {
+    height: 160px;
+  }
+  .offer-content {
+    padding: 16px 10px 12px 10px;
+  }
+}
+@media (max-width: 570px) {
+  .offers-container {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 7px;
+    padding: 7px 3px 40px 3px;
+  }
+  .offer-card {
+    border-radius: 10px;
+    margin: 0 0 12px 0;
+    min-width: 0;
+    min-height: 0;
+    height: auto !important;
+    max-height: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-shadow: 0 2px 8px 0 #4caf5011;
+  }
+  .offer-image {
+    height: 60px;
+    border-radius: 8px 8px 0 0;
+  }
+  .offer-title {
+    font-size: 0.85rem;
+    margin-bottom: 4px;
+    font-weight: 700;
+  }
+  .offer-content {
+    padding: 6px 3px 6px 3px;
+  }
+  .offer-agency {
+    font-size: 0.75rem;
+    margin-bottom: 2px;
+    gap: 3px;
+  }
+  .offer-agency-location-row {
+    margin-bottom: 2px;
+  }
+  .offer-location-group {
+    gap: 2px;
+  }
+  .offer-location {
+    font-size: 0.7rem;
+    padding: 2px 5px 2px 4px;
+    border-radius: 5px;
+  }
+  .offer-location i {
+    font-size: 0.9em;
+    margin-left: 1px;
+  }
+  .offer-details {
+    gap: 4px 7px;
+    margin-bottom: 4px;
+  }
+  .offer-detail {
+    font-size: 0.7rem;
+    padding: 2px 5px 2px 4px;
+    border-radius: 5px;
+    gap: 3px;
+  }
+  .service-icon-with-label {
+    min-width: 30px;
+    margin: 0 3px 0 0;
+  }
+  .service-icon-with-label i {
+    font-size: 1.1em;
+    margin-bottom: 1px;
+  }
+  .service-label {
+    font-size: 0.7em;
+    margin-top: 0px;
+  }
+  .offer-badge {
+    font-size: 0.7em;
+    padding: 3px 7px;
+    border-radius: 10px;
+    top: 7px;
+    left: 7px;
+  }
+  .offer-badge.best-offer {
+    font-size: 0.8em;
+    padding: 4px 10px;
+    border-radius: 12px;
+    top: 8px;
+    right: 8px;
+  }
+  .offer-price {
+    gap: 7px;
+    margin-bottom: 3px;
+  }
+  .price-amount {
+    font-size: 0.75rem;
+    padding: 2px 4px;
+    border-radius: 5px;
+  }
+  .offer-btn {
+    font-size: 0.75rem;
+    padding: 4px 7px;
+    border-radius: 5px;
+    margin-top: 0;
+  }
+}
 
-// تحميل العروض عند بدء الصفحة فقط
-document.addEventListener('DOMContentLoaded', function() { fetchAndDisplayOffers(); });
+/* Bottom Nav */
+
+
+
+/* Scroll Top */
+.scroll-top {
+  position: fixed;
+  bottom: 90px; right: 21px;
+  width: 53px; height: 53px;
+  background: var(--gold-dark);
+  color: var(--white);
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  box-shadow: 0 4px 20px rgba(212, 175, 55, 0.17);
+  cursor: pointer;
+  transition: var(--transition);
+  z-index: 1100;
+  display: none;
+}
+.scroll-top:hover {
+  background: var(--gold);
+  color: var(--main-green);
+  transform: translateY(-5px) scale(1.08);
+}
