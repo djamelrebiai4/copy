@@ -9,7 +9,7 @@ CLOUDINARY_API_SECRET=6QrC2HHdd3R_BAmfAaHT4cpLduE
 JWT_SECRET=af130d8b9a3340c3f52f2b79cfddd615aa30328984c5b1e752f821ddd14754ce
 PORT=3001
 
-
+compte : mainadmin@email.com ///pass: admin
 
 
 mossab : 
@@ -22,3 +22,7 @@ CLOUDINARY_API_SECRET=av0i84T8YvdGy05F7YUy0nj84q0
 
 JWT_SECRET=af130d8b9a3340c3f52f2b79cfddd615aa30328984c5b1e752f821ddd14754ce
 PORT=3001
+
+
+compte : almanassik.alarabi@gmail.com ///pass: Almanassik.09.06.2025.Supabase
+
